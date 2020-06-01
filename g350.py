@@ -95,6 +95,10 @@ def operators():
 def set_operator(opname):
     pass
 
+@c_native("_g350_get_clock",["csrc/g350.c"])
+def get_clock():
+    pass
+
 @c_native("_g350_last_error",["csrc/g350.c"])
 def last_error():
     """

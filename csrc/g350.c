@@ -2,8 +2,9 @@
  * @file g350.c
  * @brief Driver for Sara G350 modules
  * @author Giacomo Baldi
+ * @author Lorenzo Cappelletti
  * @version 
- * @date 2017-08-20
+ * @date 2020-05-30
  */
 
 
@@ -1584,6 +1585,55 @@ C_NATIVE(_g350_link_info){
     PTUPLE_SET_ITEM(tpl,1,dns);
     *res = tpl;
     return ERR_OK;
+}
+
+/**
+ * @brief _g350_get_clock reads the real-time clock of the MT by means of +CCLK
+ *
+ *
+ */
+C_NATIVE(_g350_get_clock){
+    NATIVE_UNWARN();
+    int err;
+
+    GSSlot *slot;
+    RELEASE_GIL();
+
+    slot = _gs_acquire_slot(GS_CMD_CCLK,NULL,sizeof("\"yy/MM/dd,hh:mm:ss+TZ\""),GS_TIMEOUT,1);
+    _gs_send_at(GS_CMD_CCLK,"?");
+    _gs_wait_for_slot();
+    if (slot->err) {
+        *res = MAKE_NONE();
+        err = slot->err;
+        goto exit;
+    }
+
+    PTuple *tpl = ptuple_new(7,NULL);
+    for (int i=0; i < 7; ++i) {
+        uint8_t *buf = &slot->resp[3*i];
+        int val;
+
+        val = 10*(buf[1] - '0') + (buf[2] - '0');
+        if (i == 0) {
+            // fix year field
+            val += 2000;
+        } else
+        if (i == 6) {
+            // fix time zone scale and sign
+            val *= 15; // steps of 15 minutes
+            if (buf[0] == '-')
+                val *= -1;
+        }
+
+        PTUPLE_SET_ITEM(tpl,i,PSMALLINT_NEW(val));
+    }
+    *res = tpl;
+    err = ERR_OK;
+
+exit:
+    _gs_release_slot(slot);
+    ACQUIRE_GIL();
+    return err;
 }
 
 
