@@ -113,7 +113,7 @@ typedef struct _gsm_status{
 #define GS_MODE_PROMPT 1
 
 #define GS_CMD_NORMAL 0
-#define GS_CMD_URC    1 
+#define GS_CMD_URC    1
 #define GS_CMD_LINE   2
 
 //RESPONSES

@@ -2,14 +2,14 @@
  * @file g350.c
  * @brief Driver for Sara G350 modules
  * @author Giacomo Baldi
- * @version 
+ * @version
  * @date 2017-08-20
  */
 
 
 
 /** \mainpage Driver Architecture
- * 
+ *
  * This driver consists of:
  *
  * - a main thread (_gs_loop) that has exclusive access to the serial port in input
@@ -27,7 +27,7 @@
  * - an error condition is received and the thread owning the slot is signaled
  * - the slot timeout is reached and the thread owning the slot is signaled
  * - a valid command response is detected and the gs.buffer is copied to the slot buffer for parsing
- * 
+ *
  * In all cases it is not possible for a slot to stall the main thread longer than timeout milliseconds. Obviously the thread owning
  * the slot must behave correctly:
  *
@@ -127,26 +127,26 @@ int _gs_poweron(){
 
     vhalPinSetMode(gs.dtr,PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.dtr,0);
-    
+
     vhalPinSetMode(gs.rts,PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.rts,0);
 
     int retries = 0;
 
    for(;retries<20;retries++){
-        printf("Power up sequence %i\n",retries); 
+        printf("Power up sequence %i\n",retries);
         //poweron
         vhalPinWrite(gs.poweron, 0);
         vosThSleep(TIME_U(100,MILLIS));  //minimum time 5 ms...let's be abundant :)
         vhalPinWrite(gs.poweron, 1);
-        
+
         //reset
         if(retries==10){
             vhalPinWrite(gs.reset,0);
             vosThSleep(TIME_U(500,MILLIS)); //minimum time 50 ms
             vhalPinWrite(gs.reset,1);
         }
-                  
+
         _gs_read(-1);
         vhalSerialWrite(gs.serial,"AT\r\n",4);
         vosThSleep(TIME_U(100,MILLIS));
@@ -161,7 +161,7 @@ int _gs_poweron(){
         return 1;
     }
     printf("poweron ko\n");
-    
+
     return 0;
 
 }
@@ -185,7 +185,7 @@ int _gs_wait_for_ok(int timeout){
 /**
  * @brief Read a line from the module
  *
- * Lines are saved into gs.buffer and null terminated. The number of bytes read 
+ * Lines are saved into gs.buffer and null terminated. The number of bytes read
  * is saved in gs.buffer and returned. The timeout is implemented with a 50 milliseconds
  * polling strategy. TODO: change when the serial driver will support timeouts
  *
@@ -224,7 +224,7 @@ int _gs_readline(int timeout){
 }
 
 /**
- * @brief 
+ * @brief
  *
  * @param[in]   bytes   the number of bytes to read. If non positive, read the available ones.
  *
@@ -324,7 +324,7 @@ uint8_t* _gs_advance_to(uint8_t *buf,uint8_t *ebuf,uint8_t *pattern){
 }
 
 /**
- * @brief parse numbers in base 10 from a byte buffe 
+ * @brief parse numbers in base 10 from a byte buffe
  *
  * Does not check for number format correctness (0003 is ok) and
  * does not parse negative numbers. Skip spaces and \r \n without checking
@@ -334,7 +334,7 @@ uint8_t* _gs_advance_to(uint8_t *buf,uint8_t *ebuf,uint8_t *pattern){
  * @param[in]  ebuf    ending point (not included)
  * @param[out] result  the positon reached after the parsing, NULL on failed parsing
  *
- * @return 
+ * @return
  */
 uint8_t* _gs_parse_number(uint8_t *buf, uint8_t *ebuf, int32_t *result){
     int res = 0;
@@ -481,26 +481,26 @@ void _gs_send_at(int cmd_id,const char *fmt,...){
  */
 int _gs_config0(){
     //clean serial
-    
+
     vhalSerialWrite(gs.serial,"ATE0\r\n",6);
     if(!_gs_wait_for_ok(500)) return 0;
-    
+
     vhalSerialWrite(gs.serial,"AT+GMR\r\n",8);
     if(!_gs_wait_for_ok(500)) return 0;
 
     _gs_send_at(GS_CMD_CMEE,"=i",2);
     if(!_gs_wait_for_ok(500)) return 0;
-    
+
     _gs_send_at(GS_CMD_CMER,"=i,i,i,i,i",2,0,0,2,1);
     if(!_gs_wait_for_ok(500)) return 0;
-    
+
     _gs_send_at(GS_CMD_UDCONF,"=i,i",1,1); //enable HEX mode
     if(!_gs_wait_for_ok(1000)) return 0;
 
     _gs_send_at(GS_CMD_CREG,"=i",2);
     if(!_gs_wait_for_ok(500)) return 0;
-    
-    
+
+
     gs.initialized=1;
     return 1;
 }
@@ -577,7 +577,7 @@ void _gs_handle_urc(GSCmd *cmd){
                 default:
                     gs.registered = GS_REG_NOT;
                     break;
-            }            
+            }
             break;
         case GS_CMD_UUPSDA:
             nargs = _gs_parse_command_arguments(buf,ebuf,"i",&p0);
@@ -851,7 +851,7 @@ void _gs_loop(void *args){
                 }
             }
         } else {
-            //// PROMPT MODE 
+            //// PROMPT MODE
             //Prompt mode is used for USECMNG (implemented) and DWNFILE (not implemented)
             //If needed, logic for prompt mode goes here
             int ss;
@@ -890,10 +890,10 @@ C_NATIVE(_g350_init){
     int32_t dtr;
     int32_t poweron;
     int32_t reset;
-    int32_t err = ERR_OK;  
+    int32_t err = ERR_OK;
     int32_t exc;
-    
-        
+
+
     if (parse_py_args("iiiiii", nargs, args, &serial, &dtr, &rts, &poweron, &reset, &exc) != 6)
         return ERR_TYPE_EXC;
 
@@ -913,7 +913,7 @@ C_NATIVE(_g350_init){
     gs.reset = reset;
     if(!_gs_poweron()) {
         err = ERR_HARDWARE_INITIALIZATION_ERROR;
-    } 
+    }
     else {
         if(!_gs_config0()) err = ERR_HARDWARE_INITIALIZATION_ERROR;
     }
@@ -933,7 +933,7 @@ C_NATIVE(_g350_init){
 /**
  * @brief Generalize sending AT commands for +UPSD (setting the packed switched data profile)
  *
- * @param[in] tag    tag parameter for +UPSD 
+ * @param[in] tag    tag parameter for +UPSD
  * @param[in] param  string parameter for +UPSD
  * @param[in] len    length of param
  *
@@ -1019,11 +1019,11 @@ int _g350_check_network(){
 C_NATIVE(_new_check_network){
     NATIVE_UNWARN();
     printf("_new_check_network 1\n");
-    
+
     GSSlot *slot;
     int p0,p1,p2;
     PTuple *tpl = ptuple_new(2,NULL);
-    
+
     PTUPLE_SET_ITEM(tpl,0,PSMALLINT_NEW(-1));
     PTUPLE_SET_ITEM(tpl,1,PSMALLINT_NEW(-1));
     printf("_new_check_network 2\n");
@@ -1047,7 +1047,7 @@ C_NATIVE(_new_check_network){
 /**
  * @brief _g350_detach removes the link with the APN while keeping connected to the GSM network
  *
- * 
+ *
  */
 C_NATIVE(_g350_detach){
     NATIVE_UNWARN();
@@ -1075,16 +1075,16 @@ C_NATIVE(_g350_attach){
     int32_t timeout;
     int32_t wtimeout;
     int32_t err=ERR_OK;
-    
+
     int i;
 
 
     if(parse_py_args("sssii",nargs,args,&apn,&apn_len,&user,&user_len,&password,&password_len,&authmode,&wtimeout)!=5) return ERR_TYPE_EXC;
-    
+
     *res = MAKE_NONE();
     GSSlot *slot = NULL;
     RELEASE_GIL();
-    
+
     //Attach to GPRS
     slot = _gs_acquire_slot(GS_CMD_CGATT,NULL,0,GS_TIMEOUT*60*3,0);
     _gs_send_at(GS_CMD_CGATT,"=i",1);
@@ -1108,7 +1108,7 @@ C_NATIVE(_g350_attach){
         err = ERR_TIMEOUT_EXC;
         goto exit;
     }
-    
+
     //deactivate PSD
     _g350_control_psd(4);
 
@@ -1126,12 +1126,12 @@ C_NATIVE(_g350_attach){
     if (password_len) {
         if(!_g350_configure_psd(3,password,password_len)) goto exit;
     }
-    if(!_g350_configure_psd(6,NULL,authmode)) goto exit; 
+    if(!_g350_configure_psd(6,NULL,authmode)) goto exit;
 
-    
+
     //activate PSD
     gs.attached = 0;
-    if(!_g350_control_psd(3)) goto exit; 
+    if(!_g350_control_psd(3)) goto exit;
 
     //wait for attached (set by +UUPSDA or queried by +UPSND)
     timeout=wtimeout;
@@ -1170,7 +1170,7 @@ int _gs_list_operators(){
     if (slot->err) {
         err = slot->err;
         _gs_release_slot(slot);
-        return err;    
+        return err;
     }
     uint8_t *buf = slot->resp;
     uint8_t nops =0, nres, nt=0;
@@ -1223,7 +1223,7 @@ int _gs_set_operator(uint8_t *opname, uint32_t oplen){
         err = slot->err;
         _gs_release_slot(slot);
         return err;
-    }    
+    }
     _gs_release_slot(slot);
     return 0;
 }
@@ -1231,7 +1231,7 @@ int _gs_set_operator(uint8_t *opname, uint32_t oplen){
 /**
  * @brief _g350_operators retrieve the operator list and converts it to a tuple
  *
- * 
+ *
  */
 C_NATIVE(_g350_operators){
     NATIVE_UNWARN();
@@ -1262,7 +1262,7 @@ C_NATIVE(_g350_operators){
 /**
  * @brief _g360_set_operator try to set the current operator given its name
  *
- * 
+ *
  */
 C_NATIVE(_g350_set_operator){
     NATIVE_UNWARN();
@@ -1288,7 +1288,7 @@ C_NATIVE(_g350_set_operator){
 /**
  * @brief _g350_last_error retrieve the last error sring generated by +CME ERROR
  *
- * 
+ *
  */
 C_NATIVE(_g350_last_error){
     NATIVE_UNWARN();
@@ -1358,7 +1358,7 @@ C_NATIVE(_g350_rtc){
 /**
  * @brief _g350_rssi return the signal strength as reported by +CIEV urc
  *
- * 
+ *
  */
 C_NATIVE(_g350_rssi){
     NATIVE_UNWARN();
@@ -1396,7 +1396,7 @@ C_NATIVE(_g350_network_info){
 
     //RAT  : URAT
     //CELL : UCELLINFO
-    GSSlot *slot; 
+    GSSlot *slot;
     RELEASE_GIL();
 
     // GET URAT
@@ -1476,7 +1476,7 @@ C_NATIVE(_g350_network_info){
             } else {
                 PTUPLE_SET_ITEM(tpl,5,pstring_new(0,NULL));
             }
-            
+
         }
     }
     if(!PTUPLE_ITEM(tpl,1)){
@@ -1494,7 +1494,7 @@ C_NATIVE(_g350_network_info){
     PTUPLE_SET_ITEM(tpl,6,gs.registered ? PBOOL_TRUE():PBOOL_FALSE());
     //attached to APN
     PTUPLE_SET_ITEM(tpl,7,gs.attached ? PBOOL_TRUE():PBOOL_FALSE());
-    
+
     ACQUIRE_GIL();
     *res = tpl;
     return ERR_OK;
@@ -1503,16 +1503,16 @@ C_NATIVE(_g350_network_info){
 /**
  * @brief _g350_mobile_info retrieves info on IMEI and SIM card by means of +CGSN and *CCID
  *
- * 
+ *
  */
 C_NATIVE(_g350_mobile_info){
     NATIVE_UNWARN();
-    
+
     PTuple *tpl = ptuple_new(2,NULL);
 
-    //IMEI : CGN    
+    //IMEI : CGN
     //SIM : CCID
-    GSSlot *slot; 
+    GSSlot *slot;
     RELEASE_GIL();
 
     //GET IMEI
@@ -1539,7 +1539,7 @@ C_NATIVE(_g350_mobile_info){
         }
     }
     _gs_release_slot(slot);
-    
+
     if (!PTUPLE_ITEM(tpl,0)){
         PTUPLE_SET_ITEM(tpl,0,pstring_new(0,NULL));
     }
@@ -1562,10 +1562,10 @@ C_NATIVE(_g350_link_info){
     PString *ips;
     PString *dns;
     uint8_t *addr;
-    uint32_t addrlen; 
+    uint32_t addrlen;
 
     RELEASE_GIL();
-    
+
     if(_g350_query_psd(0,&addr,&addrlen)){
         ips = pstring_new(addrlen-2,addr+1);
     } else {
@@ -1595,21 +1595,21 @@ C_NATIVE(_g350_link_info){
 
 /**
  * \mainpage Socket Management
- * 
+ *
  *  GSocket structure contains two semaphores, one to gain exclusive access to the structure (socklock) the other
- *  to signal event to threads suspended on a socket receive. Since sockets can be closed remotely, GSocket also has a flag (to_be_closed) 
+ *  to signal event to threads suspended on a socket receive. Since sockets can be closed remotely, GSocket also has a flag (to_be_closed)
  *  indicating such event.
  *
  *  The id of a socket (index in the socket list) is assigned by the +USOCR command. If a previously created GSocket with the same id
  *  returned by +USOCR has not been properly closed, the creation of the corresponding new GSocket fails until correct closing. This prevents memory leaks
  *  and the possibility of having in Python two sockets instances with the same id (one valid and one invalid).
  *
- *  The event about pending bytes in the receive queue is signaled by the module with one or more URCs. 
+ *  The event about pending bytes in the receive queue is signaled by the module with one or more URCs.
  *  The URC handling routine signal the appropriate socket on the rx semaphore.
  *  There is no check about the status of the socket (this would have involved a more complicated coordination between he main thread
- *  and sockets). 
+ *  and sockets).
  *
- *  CNatives that implements the various form of recv suspend themselves on the rx semaphore when the module AT command 
+ *  CNatives that implements the various form of recv suspend themselves on the rx semaphore when the module AT command
  *  (+USORD or +USORF) return 0 available bytes. However, since the urc handling routine may signal pending bytes repeatedly, it can happen that
  *  even at 0 available bytes, rx semaphore won't suspend. This is not a big issue, since the additional (and unneeded) AT command executions are quite fast.
  *
@@ -1648,7 +1648,7 @@ GSocket *_gs_socket_new(int id, int proto){
         sock->proto         = proto;
         res = sock;
     }
-    
+
     vosSemSignal(sock->lock);
     return res;
 }
@@ -1667,13 +1667,13 @@ GSocket *_gs_socket_get(int id){
     vosSemWait(sock->lock);
 
     if(sock->acquired)  res = sock;
-    
+
     vosSemSignal(sock->lock);
     return res;
 }
 
 /**
- * @brief 
+ * @brief
  *
  * @param id
  */
@@ -1757,7 +1757,7 @@ int _gs_socket_addr(NetAddress *addr, uint8_t *saddr) {
     buf+=modp_itoa10(OAL_IP_AT(addr->ip, 2),buf);
     *buf++='.';
     buf+=modp_itoa10(OAL_IP_AT(addr->ip, 3),buf);
-    return buf-saddr; 
+    return buf-saddr;
 }
 
 int _gs_socket_error( int sock){
@@ -1798,7 +1798,7 @@ int _g350_usocr(int proto){
                 _gs_release_slot(slot);
                 slot = NULL;
                 err = -1;
-            } else err = p0; 
+            } else err = p0;
         } else {
             err = -1;
         }
@@ -1831,7 +1831,7 @@ C_NATIVE(_g350_socket_create){
         err = ERR_OK;
     }
     ACQUIRE_GIL();
-    
+
     return err;
 }
 
@@ -1851,7 +1851,7 @@ C_NATIVE(_g350_socket_connect) {
     RELEASE_GIL();
     ssock = _gs_socket_get(sock);
     if(!ssock) {
-        err = ERR_IOERROR_EXC;    
+        err = ERR_IOERROR_EXC;
     } else {
         slot = _gs_acquire_slot(GS_CMD_USOCO,NULL,0,GS_TIMEOUT*30,0);
         _gs_send_at(GS_CMD_USOCO,"=i,\"s\",i",sock,saddr,saddrlen,OAL_GET_NETPORT(addr.port));
@@ -1878,7 +1878,7 @@ C_NATIVE(_g350_socket_close) {
     RELEASE_GIL();
     ssock = _gs_socket_get(sock);
     if(!ssock) {
-        err = ERR_IOERROR_EXC;    
+        err = ERR_IOERROR_EXC;
     } else {
         if(!ssock->to_be_closed) {
             slot = _gs_acquire_slot(GS_CMD_USOCL,NULL,0,GS_TIMEOUT*15,0);
@@ -1916,7 +1916,7 @@ C_NATIVE(_g350_socket_send) {
     RELEASE_GIL();
     ssock = _gs_socket_get(sock);
     if(!ssock || ssock->to_be_closed) {
-        err = ERR_IOERROR_EXC;    
+        err = ERR_IOERROR_EXC;
     } else {
         wrt=0;
         while(wrt<len && err==ERR_OK){
@@ -1968,7 +1968,7 @@ C_NATIVE(_g350_socket_sendto){
     saddrlen = _gs_socket_addr(&addr,saddr);
     ssock = _gs_socket_get(sock);
     if(!ssock || ssock->to_be_closed || ssock->proto != 17) {
-        err = ERR_IOERROR_EXC;    
+        err = ERR_IOERROR_EXC;
     } else {
         wrt=0;
         int tsnd;
@@ -1990,7 +1990,7 @@ C_NATIVE(_g350_socket_sendto){
             _gs_release_slot(slot);
         }
     }
-    
+
     ACQUIRE_GIL();
 
     *res = PSMALLINT_NEW(wrt);
@@ -2027,7 +2027,7 @@ C_NATIVE(_g350_socket_recv_into){
     RELEASE_GIL();
     ssock = _gs_socket_get(sock);
     if(!ssock || ssock->to_be_closed) {
-        err = ERR_IOERROR_EXC;    
+        err = ERR_IOERROR_EXC;
     } else {
         timeout = ssock->timeout ? ssock->timeout:-1;
         rb=0;
@@ -2104,7 +2104,7 @@ C_NATIVE(_g350_socket_recvfrom_into){
     RELEASE_GIL();
     ssock = _gs_socket_get(sock);
     if(!ssock || ssock->to_be_closed || ssock->proto != 17) {
-        err = ERR_IOERROR_EXC;    
+        err = ERR_IOERROR_EXC;
     } else {
         timeout = ssock->timeout ? ssock->timeout:-1;
         rb=0;
@@ -2303,9 +2303,9 @@ C_NATIVE(_g350_socket_select){
                 }
                 _gs_release_slot(slot);
             }
-        } 
-    }    
-    
+        }
+    }
+
 
     PTuple* tpl = (PTuple*)psequence_new(PTUPLE, 3);
     //count the number of ready sockets
@@ -2327,7 +2327,7 @@ C_NATIVE(_g350_socket_select){
     rpl = ptuple_new(0,NULL);
     PTUPLE_SET_ITEM(tpl,1,rpl);
     PTUPLE_SET_ITEM(tpl,2,rpl);
-    gc_free(rlready); 
+    gc_free(rlready);
     ACQUIRE_GIL();
 
     *res = tpl;
@@ -2351,9 +2351,9 @@ int _gs_tls_config(int opcode,int param,uint8_t *sparam,int sparam_len){
         _gs_send_at(GS_CMD_USECPRF,"=i",GS_TLS_PROFILE);
     } else if(param>=0) {
         //send integer command
-        _gs_send_at(GS_CMD_USECPRF,"=i,i,i",GS_TLS_PROFILE,opcode,param); 
+        _gs_send_at(GS_CMD_USECPRF,"=i,i,i",GS_TLS_PROFILE,opcode,param);
     } else if(sparam!=NULL){
-        _gs_send_at(GS_CMD_USECPRF,"=i,i,\"s\"",GS_TLS_PROFILE,opcode,sparam,sparam_len);  
+        _gs_send_at(GS_CMD_USECPRF,"=i,i,\"s\"",GS_TLS_PROFILE,opcode,sparam,sparam_len);
     }
     _gs_wait_for_slot();
     if (slot->err) {
@@ -2470,7 +2470,7 @@ C_NATIVE(_g350_secure_socket)
     if(_gs_tls_config(2,0,NULL,0)) goto exit;
 
     //NOTE: ZERYNTH CERTS END with \0
-    
+
     if(options&_CERT_NONE) {
        //NO CACERT VERIFICATION
         if(_gs_tls_config(0,0,NULL,0)) goto exit;
@@ -2498,13 +2498,13 @@ C_NATIVE(_g350_secure_socket)
     }
     if(clilen) {
         //internal clicert name
-        if(_gs_tls_config(5,-1,_g350_certnames[1],8)) goto exit;  
+        if(_gs_tls_config(5,-1,_g350_certnames[1],8)) goto exit;
         //load clicert
         if(_gs_tls_load(1,clibuf,clilen-1)) goto exit;
     }
     if(pkeylen){
         //internal clipkey name
-        if(_gs_tls_config(6,-1,_g350_certnames[2],8)) goto exit;  
+        if(_gs_tls_config(6,-1,_g350_certnames[2],8)) goto exit;
         //load clipkey
         if(_gs_tls_load(2,pkeybuf,pkeylen-1)) goto exit;
     }
@@ -2518,7 +2518,7 @@ C_NATIVE(_g350_secure_socket)
         if(!_gs_tls_set(sock)){
             //TLS enabled for sock
             gs.secure_sock_id = sock;
-        }    
+        }
         err = ERR_OK;
     }
 
