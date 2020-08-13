@@ -23,8 +23,11 @@ typedef struct _gsm_socket {
 
 //COMMANDS
 
-#define MAKE_CMD(group,command,response) (((group)<<24)|((command)<<16)|(response))
-#define DEF_CMD(cmd,response,urc,id)  {cmd,sizeof(cmd)-1,response,urc,id}
+#define MAKE_CMD(group, command, response) (((group) << 24) | ((command) << 16) | (response))
+#define DEF_CMD(cmd, response, urc, id)         \
+    {                                           \
+        cmd, sizeof(cmd) - 1, response, urc, id \
+    }
 
 typedef struct _gs_cmd {
     uint8_t body[16];
@@ -33,7 +36,6 @@ typedef struct _gs_cmd {
     uint8_t urc;
     uint8_t id;
 } GSCmd;
-
 
 //COMMAND SLOTS
 
@@ -63,7 +65,6 @@ typedef struct _gs_operator {
     uint8_t fmt_short[10];
     uint8_t fmt_code[6];
 }GSOp;
-
 
 ////////////GSM STATUS
 
@@ -106,14 +107,14 @@ typedef struct _gsm_status{
 #define GS_REG_OK      1
 #define GS_REG_ROAMING 3
 
-#define KNOWN_COMMANDS (sizeof(gs_commands)/sizeof(GSCmd))
-#define GS_MIN(a)   (((a)<(gs.bytes)) ? (a):(gs.bytes))
+#define KNOWN_COMMANDS (sizeof(gs_commands) / sizeof(GSCmd))
+#define GS_MIN(a)   (((a) < (gs.bytes)) ? (a) : (gs.bytes))
 
 #define GS_MODE_NORMAL 0
 #define GS_MODE_PROMPT 1
 
 #define GS_CMD_NORMAL 0
-#define GS_CMD_URC    1 
+#define GS_CMD_URC    1
 #define GS_CMD_LINE   2
 
 //RESPONSES
@@ -123,8 +124,6 @@ typedef struct _gsm_status{
 #define GS_RES_PARAM_OK  1
 // no answer
 #define GS_RES_NO        2
-
-
 
 #define GS_CMD_CCID             0
 #define GS_CMD_CCLK             1
