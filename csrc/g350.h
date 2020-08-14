@@ -206,3 +206,9 @@ static const GSCmd gs_commands[] = {
 
 };
 
+extern GStatus gs;
+
+void _gs_init(void);
+void _gs_loop(void* args);
+int _gs_poweron(void);
+int _gs_config0(void);
