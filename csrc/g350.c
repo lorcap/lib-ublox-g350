@@ -1299,6 +1299,111 @@ static const uint8_t *_urats[] = {
     "LTE"
 };
 
+/**
+ * @brief Get current Radio Access Technology
+ */
+int _gs_get_rat(void)
+{
+    int p0;
+    GSSlot* slot;
+    RELEASE_GIL();
+
+    slot = _gs_acquire_slot(GS_CMD_URAT, NULL, 32, GS_TIMEOUT * 10, 1);
+    _gs_send_at(GS_CMD_URAT, "?");
+    _gs_wait_for_slot();
+    p0 = 0;
+    //+URAT is not always supported in G3 family, default to GSM in case of error
+    if (!slot->err) {
+        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "i", &p0) == 1) {
+            if (p0 == 2)
+                p0 = 1;
+            else if (p0 >= 3)
+                p0 = 2;
+        }
+    }
+    memcpy(gs.rat, &_urats[p0], (p0 == 1) ? 4 : 3);
+
+    ACQUIRE_GIL();
+    _gs_release_slot(slot);
+    return 0;
+}
+
+int _gs_cell_info(int* mcc, int* mnc)
+{
+    int p0, l0, l1, l2, l3, l4;
+    uint8_t *s0, *s1, *s2, *s3, *s4, *st, *se;
+    GSSlot* slot;
+    RELEASE_GIL();
+
+    slot = _gs_acquire_slot(GS_CMD_CGED, NULL, 512, GS_TIMEOUT * 10, 1);
+    _gs_send_at(GS_CMD_CGED, "=i", 3);
+    _gs_wait_for_slot();
+    if (!slot->err) {
+        //only 3G and 2G supported!
+        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "sssss", &s0, &l0, &s1, &l1, &s2, &l2, &s3, &l3, &s4, &l4) == 5) {
+            //MCC
+            se = s0 + l0;
+            st = s0;
+            st = _gs_advance_to(st, se, ":");
+            if (st) {
+                if (st = _gs_parse_number(st + 1, se, &p0)) {
+                    *mcc = p0;
+                }
+            }
+            if (!st) {
+                *mcc = -1;
+            }
+            //MNC
+            se = s1 + l1;
+            st = s1;
+            st = _gs_advance_to(st, se, ":");
+            if (st) {
+                if(st = _gs_parse_number(st + 1, se, &p0)){
+                    *mnc = p0;
+                }
+            }
+            if (!st) {
+                *mnc = -1;
+            }
+            //BSIC
+            se = s4 + l4;
+            st = s4;
+            st = _gs_advance_to(st, se, ":");
+            if (st) {
+                l4 = MIN(MAX_BSIC_LEN - 1, se - st);
+                memcpy(gs.bsic, st + 1, l4);
+                gs.bsic[l4] = 0;
+            } else {
+                memset(gs.bsic, 0, MAX_BSIC_LEN);
+            }
+            //LAC
+            se = s2 + l2;
+            st = s2;
+            st = _gs_advance_to(st, se, ":");
+            if (st) {
+                l2 = MIN(MAX_LAC_LEN - 1, se - st);
+                memcpy(gs.lac, st + 1, l2);
+                gs.lac[l2] = 0;
+            } else {
+                memset(gs.lac, 0, MAX_LAC_LEN);
+            }
+            //CI
+            se = s3 + l3;
+            st = s3;
+            st = _gs_advance_to(st, se, ":");
+            if (st) {
+                l3 = MIN(MAX_CI_LEN - 1, se - st);
+                memcpy(gs.ci, st + 1, l3);
+                gs.ci[l3] = 0;
+            } else {
+                memset(gs.ci, 0, MAX_CI_LEN);
+            }
+        }
+    }
+    ACQUIRE_GIL();
+    _gs_release_slot(slot);
+    return 0;
+}
 
 int _gs_socket_wait_rx(GSocket* sock, int timeout)
 {
@@ -1474,127 +1579,6 @@ int _gs_tls_set(int sock)
 ///////// CNATIVES
 // The following functions are callable from Python.
 // Functions starting with "_" are utility functions called by CNatives
-
-/**
- * @brief _g450_network_info retrieves network information through +URAT and *CGED
- *
- *
- */
-C_NATIVE(_g350_network_info)
-{
-    NATIVE_UNWARN();
-    int p0, l0, l1, l2, l3, l4;
-    uint8_t *s0, *s1, *s2, *s3, *s4, *st, *se;
-    PString* urat;
-    PString* tstr = NULL;
-    PTuple* tpl = ptuple_new(8, NULL);
-
-    //RAT  : URAT
-    //CELL : UCELLINFO
-    GSSlot* slot;
-    RELEASE_GIL();
-
-    // GET URAT
-    slot = _gs_acquire_slot(GS_CMD_URAT, NULL, 32, GS_TIMEOUT * 10, 1);
-    _gs_send_at(GS_CMD_URAT, "?");
-    _gs_wait_for_slot();
-    p0 = 0;
-    //+URAT is not always supported in G3 family, default to GSM in case of error
-    if (!slot->err) {
-        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "i", &p0) == 1) {
-            if (p0 == 2)
-                p0 = 1;
-            else if( p0 >= 3)
-                p0 = 2;
-        }
-    }
-    urat = pstring_new((p0 == 1) ? 4 : 3, _urats[p0]);
-    PTUPLE_SET_ITEM(tpl, 0, urat);
-    _gs_release_slot(slot);
-
-    //GET CELLINFO
-    slot = _gs_acquire_slot(GS_CMD_CGED, NULL, 512, GS_TIMEOUT * 10, 1);
-    _gs_send_at(GS_CMD_CGED, "=i", 3);
-    _gs_wait_for_slot();
-    if (!slot->err) {
-        //only 3G and 2G supported!
-        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "sssss", &s0, &l0, &s1, &l1, &s2, &l2, &s3, &l3, &s4, &l4) == 5) {
-            //MCC
-            se = s0 + l0;
-            st = s0;
-            st = _gs_advance_to(st, se, ":");
-            if (st) {
-                if (st = _gs_parse_number(st + 1, se, &p0)) {
-                    PTUPLE_SET_ITEM(tpl, 1, PSMALLINT_NEW(p0));
-                }
-            }
-            if (!st) {
-                PTUPLE_SET_ITEM(tpl, 1, PSMALLINT_NEW(-1));
-            }
-            //MNC
-            se = s1 + l1;
-            st = s1;
-            st = _gs_advance_to(st, se, ":");
-            if (st) {
-                if(st = _gs_parse_number(st + 1, se, &p0)){
-                    PTUPLE_SET_ITEM(tpl, 2, PSMALLINT_NEW(p0));
-                }
-            }
-            if (!st) {
-                PTUPLE_SET_ITEM(tpl, 2, PSMALLINT_NEW(-1));
-            }
-            //BSIC
-            se = s4 + l4;
-            st = s4;
-            st = _gs_advance_to(st, se, ":");
-            if (st) {
-                tstr = pstring_new(se - st, st + 1);
-                PTUPLE_SET_ITEM(tpl, 3, tstr);
-            } else {
-                PTUPLE_SET_ITEM(tpl, 3, pstring_new(0, NULL));
-            }
-            //LAC
-            se = s2 + l2;
-            st = s2;
-            st = _gs_advance_to(st, se, ":");
-            if (st) {
-                tstr = pstring_new(se - st, st + 1);
-                PTUPLE_SET_ITEM(tpl, 4, tstr);
-            } else {
-                PTUPLE_SET_ITEM(tpl, 4, pstring_new(0, NULL));
-            }
-            //CI
-            se = s3 + l3;
-            st = s3;
-            st = _gs_advance_to(st, se, ":");
-            if (st) {
-                tstr = pstring_new(se - st, st + 1);
-                PTUPLE_SET_ITEM(tpl, 5, tstr);
-            } else {
-                PTUPLE_SET_ITEM(tpl, 5, pstring_new(0, NULL));
-            }
-        }
-    }
-    if (!PTUPLE_ITEM(tpl, 1)) {
-        //empty result
-        tstr = pstring_new(0, NULL);
-        PTUPLE_SET_ITEM(tpl, 1, PSMALLINT_NEW(-1));
-        PTUPLE_SET_ITEM(tpl, 2, PSMALLINT_NEW(-1));
-        PTUPLE_SET_ITEM(tpl, 3, tstr);
-        PTUPLE_SET_ITEM(tpl, 4, tstr);
-        PTUPLE_SET_ITEM(tpl, 5, tstr);
-    }
-    _gs_release_slot(slot);
-
-    //registered to network
-    PTUPLE_SET_ITEM(tpl, 6, gs.registered ? PBOOL_TRUE() : PBOOL_FALSE());
-    //attached to APN
-    PTUPLE_SET_ITEM(tpl, 7, gs.attached ? PBOOL_TRUE() : PBOOL_FALSE());
-
-    ACQUIRE_GIL();
-    *res = tpl;
-    return ERR_OK;
-}
 
 /**
  * @brief _g350_mobile_info retrieves info on IMEI and SIM card by means of +CGSN and *CCID

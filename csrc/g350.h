@@ -5,6 +5,9 @@
 #define MAX_SOCK_HEX_RXBUF 128+32
 #define MAX_OPS   6
 #define MAX_ERR_LEN 32
+#define MAX_LAC_LEN 5
+#define MAX_CI_LEN 5
+#define MAX_BSIC_LEN 3
 #define GS_TIMEOUT 1000
 #define GS_TLS_PROFILE 1
 
@@ -95,6 +98,10 @@ typedef struct _gsm_status{
     VThread thread;
     uint8_t errmsg[MAX_ERR_LEN];
     uint8_t buffer[MAX_CMD];
+    uint8_t rat[5];
+    uint8_t lac[MAX_LAC_LEN];
+    uint8_t ci[MAX_CI_LEN];
+    uint8_t bsic[MAX_BSIC_LEN];
 } GStatus;
 
 //DEFINES
@@ -226,3 +233,5 @@ int _gs_query_psd(int query, uint8_t** param, uint32_t* param_len);
 int _gs_list_operators(void);
 int _gs_set_operator(uint8_t *opname, uint32_t oplen);
 int _gs_check_network(void);
+int _gs_get_rat(void);
+int _gs_cell_info(int* mcc, int* mnc);

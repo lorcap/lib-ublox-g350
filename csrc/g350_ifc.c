@@ -339,3 +339,45 @@ C_NATIVE(_g350_rssi)
     *res = PSMALLINT_NEW(rssi);
     return ERR_OK;
 }
+
+/**
+ * @brief _g350_network_info retrieves network information through +URAT and *CGED
+ */
+C_NATIVE(_g350_network_info)
+{
+    NATIVE_UNWARN();
+    int mcc = 0, mnc = 0;
+    PString* str = NULL;
+    PTuple* tpl = ptuple_new(8, NULL);
+
+    _gs_get_rat();
+    str = pstring_new(strlen(gs.rat), gs.rat);
+    PTUPLE_SET_ITEM(tpl, 0, str);
+
+    _gs_cell_info(&mcc, &mnc);
+    PTUPLE_SET_ITEM(tpl, 1, PSMALLINT_NEW(mcc));
+    PTUPLE_SET_ITEM(tpl, 2, PSMALLINT_NEW(mnc));
+    str = pstring_new(strlen(gs.bsic), gs.bsic);
+    PTUPLE_SET_ITEM(tpl, 3, str);
+    str = pstring_new(strlen(gs.lac), gs.lac);
+    PTUPLE_SET_ITEM(tpl, 4, str);
+    str = pstring_new(strlen(gs.ci), gs.ci);
+    PTUPLE_SET_ITEM(tpl, 5, str);
+    if (!PTUPLE_ITEM(tpl, 1)) {
+        //empty result
+        str = pstring_new(0, NULL);
+        PTUPLE_SET_ITEM(tpl, 1, PSMALLINT_NEW(-1));
+        PTUPLE_SET_ITEM(tpl, 2, PSMALLINT_NEW(-1));
+        PTUPLE_SET_ITEM(tpl, 3, str);
+        PTUPLE_SET_ITEM(tpl, 4, str);
+        PTUPLE_SET_ITEM(tpl, 5, str);
+    }
+
+    //registered to network
+    PTUPLE_SET_ITEM(tpl, 6, gs.registered ? PBOOL_TRUE() : PBOOL_FALSE());
+    //attached to APN
+    PTUPLE_SET_ITEM(tpl, 7, gs.attached ? PBOOL_TRUE() : PBOOL_FALSE());
+
+    *res = tpl;
+    return ERR_OK;
+}
