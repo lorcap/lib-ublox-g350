@@ -302,3 +302,28 @@ C_NATIVE(_g350_operators)
     *res = tpl;
     return ERR_OK;
 }
+
+/**
+ * @brief _g350_set_operator try to set the current operator given its name
+ */
+C_NATIVE(_g350_set_operator)
+{
+    NATIVE_UNWARN();
+    int i;
+    uint8_t* opname;
+    uint32_t oplen;
+
+    if (parse_py_args("s", nargs, args, &opname, &oplen) != 1)
+        return ERR_TYPE_EXC;
+
+    RELEASE_GIL();
+    i = _gs_set_operator(opname, oplen);
+    ACQUIRE_GIL();
+    *res = MAKE_NONE();
+    if (i == GS_TIMEOUT) {
+        return ERR_TIMEOUT_EXC;
+    } else {
+        return g350exc;
+    }
+    return ERR_OK;
+}
