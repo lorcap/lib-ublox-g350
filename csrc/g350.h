@@ -215,4 +215,5 @@ int _gs_start(void);
 int _gs_stop(void);
 void _gs_loop(void* args);
 int _gs_poweron(void);
+int _gs_wait_for_ok(int timeout);
 int _gs_config0(void);

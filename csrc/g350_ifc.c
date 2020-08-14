@@ -102,3 +102,36 @@ C_NATIVE(_g350_startup)
     ACQUIRE_GIL();
     return err;
 }
+
+/**
+ * @brief Stop modem thread and close serial port
+ */
+C_NATIVE(_g350_shutdown)
+{
+    NATIVE_UNWARN();
+    int32_t err = ERR_OK;
+    *res = MAKE_NONE();
+
+    RELEASE_GIL();
+    vosSemWait(gs.slotlock);
+
+    if (_gs_stop() != 0)
+        err = ERR_HARDWARE_INITIALIZATION_ERROR;
+
+    // attempt normal shutdown
+    vhalSerialInit(gs.serial, 115200, SERIAL_CFG(SERIAL_PARITY_NONE,SERIAL_STOP_ONE, SERIAL_BITS_8, 0, 0), gs.rx, gs.tx);
+    // check alive
+    vhalSerialWrite(gs.serial, "ATE0\r\n", 6);
+    if (_gs_wait_for_ok(500)) {
+        //enter minimal functionality
+        vhalSerialWrite(gs.serial, "AT+CFUN=0\r\n", 11);
+        _gs_wait_for_ok(15000);
+        *res = PSMALLINT_NEW(1);
+    }
+    vhalSerialDone(gs.serial);
+
+    vosSemSignal(gs.slotlock);
+
+    ACQUIRE_GIL();
+    return err;
+}
