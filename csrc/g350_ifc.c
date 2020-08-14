@@ -135,3 +135,29 @@ C_NATIVE(_g350_shutdown)
     ACQUIRE_GIL();
     return err;
 }
+
+/**
+ * @brief Stop/restart modem thread
+ *
+ * Give direct access to modem serial port
+ */
+C_NATIVE(_g350_bypass){
+    NATIVE_UNWARN();
+    int32_t mode;
+    int32_t err=ERR_OK;
+
+    if(parse_py_args("i",nargs,args,&mode)!=1) return ERR_TYPE_EXC;
+
+    *res = MAKE_NONE();
+    if (mode) {
+        vosSemWait(gs.slotlock);
+        if (_gs_stop() != 0)
+            err = ERR_HARDWARE_INITIALIZATION_ERROR;
+    }
+    else {
+        if (_gs_start() != 0)
+            err = ERR_HARDWARE_INITIALIZATION_ERROR;
+        vosSemSignal(gs.slotlock);
+    }
+    return err;
+}
