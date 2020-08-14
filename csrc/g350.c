@@ -1476,20 +1476,6 @@ int _gs_tls_set(int sock)
 // Functions starting with "_" are utility functions called by CNatives
 
 /**
- * @brief _g350_rssi return the signal strength as reported by +CIEV urc
- *
- *
- */
-C_NATIVE(_g350_rssi)
-{
-    NATIVE_UNWARN();
-    int32_t rssi = -105 + 12 * gs.rssi;
-
-    *res = PSMALLINT_NEW(rssi);
-    return ERR_OK;
-}
-
-/**
  * @brief _g450_network_info retrieves network information through +URAT and *CGED
  *
  *

@@ -327,3 +327,15 @@ C_NATIVE(_g350_set_operator)
     }
     return ERR_OK;
 }
+
+/**
+ * @brief _g350_rssi return the signal strength as reported by +CIEV urc
+ */
+C_NATIVE(_g350_rssi)
+{
+    NATIVE_UNWARN();
+    int32_t rssi = -105 + 12 * gs.rssi;
+
+    *res = PSMALLINT_NEW(rssi);
+    return ERR_OK;
+}
