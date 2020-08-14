@@ -54,6 +54,9 @@
 #define print_buffer(bf, ln)
 #endif
 
+//a reference to a Python exception to be returned on error (g350Exception)
+extern int32_t g350exc;
+
 //STATIC VARIABLES
 
 //the g350 driver status
@@ -840,6 +843,28 @@ void _gs_slot_params(GSCmd* cmd)
 }
 
 /**
+ * @brief Attach to GPRS
+ */
+int _gs_attach (void)
+{
+    GSSlot* slot;
+    int err = ERR_OK;
+
+    slot = _gs_acquire_slot(GS_CMD_CGATT, NULL, 0, GS_TIMEOUT * 60 * 3, 0);
+    _gs_send_at(GS_CMD_CGATT, "=i", 1);
+    _gs_wait_for_slot();
+    if (slot->err) {
+        if (slot->err == GS_ERR_TIMEOUT)
+            err = ERR_TIMEOUT_EXC;
+        else
+            err = g350exc;
+    }
+
+    _gs_release_slot(slot);
+    return err;
+}
+
+/**
  * @brief Main thread loop
  *
  * Exit when the driver is deinitialized
@@ -1152,7 +1177,7 @@ int _gs_set_operator(uint8_t *opname, uint32_t oplen)
     return 0;
 }
 
-int _g350_check_network(void)
+int _gs_check_network(void)
 {
     GSSlot* slot;
     int p0, p1, p2;
@@ -1197,7 +1222,7 @@ int _gs_control_psd(int tag)
  *
  * @return 0 on failure
  */
-int _g350_configure_psd(int tag, uint8_t* param, int len)
+int _gs_configure_psd(int tag, uint8_t* param, int len)
 {
     GSSlot* slot;
     slot = _gs_acquire_slot(GS_CMD_UPSD, NULL, 0, GS_TIMEOUT, 0);
@@ -1220,7 +1245,7 @@ int _g350_configure_psd(int tag, uint8_t* param, int len)
  *
  * @return 0 on failure
  */
-int _g350_query_psd(int query, uint8_t** param, uint32_t* param_len)
+int _gs_query_psd(int query, uint8_t** param, uint32_t* param_len)
 {
     GSSlot* slot;
     int p0, p1, p2;
@@ -1449,117 +1474,6 @@ int _gs_tls_set(int sock)
 ///////// CNATIVES
 // The following functions are callable from Python.
 // Functions starting with "_" are utility functions called by CNatives
-
-//a reference to a Python exception to be returned on error (g350Exception)
-extern int32_t g350exc;
-
-/**
- * @brief _g350_attach tries to link to the given APN
- *
- * This function can block for a very long time (up to 2 minutes) due to long timeout of used AT commands
- *
- *
- */
-C_NATIVE(_g350_attach)
-{
-    NATIVE_UNWARN();
-    uint8_t* apn;
-    uint32_t apn_len;
-    uint8_t* user;
-    uint32_t user_len;
-    uint8_t* password;
-    uint32_t password_len;
-    uint32_t authmode;
-    int32_t timeout;
-    int32_t wtimeout;
-    int32_t err=ERR_OK;
-
-    int i;
-
-    if (parse_py_args("sssii", nargs, args, &apn, &apn_len, &user, &user_len, &password, &password_len, &authmode, &wtimeout) !=5 )
-        return ERR_TYPE_EXC;
-
-    *res = MAKE_NONE();
-    GSSlot* slot = NULL;
-    RELEASE_GIL();
-
-    //Attach to GPRS
-    slot = _gs_acquire_slot(GS_CMD_CGATT, NULL, 0, GS_TIMEOUT * 60 * 3, 0);
-    _gs_send_at(GS_CMD_CGATT, "=i", 1);
-    _gs_wait_for_slot();
-    if (slot->err) {
-        if (slot->err==GS_ERR_TIMEOUT)
-            err = ERR_TIMEOUT_EXC;
-        else
-            err = g350exc;
-        _gs_release_slot(slot);
-        goto exit;
-    }
-    _gs_release_slot(slot);
-    //wait until timeut or GPRS attached (by urc +CREG or +CIEV)
-    timeout = wtimeout;
-    while (timeout > 0) {
-        _g350_check_network();
-        if (gs.registered==GS_REG_OK || gs.registered==GS_REG_ROAMING)
-            break;
-        vosThSleep(TIME_U(100, MILLIS));
-        timeout -= 100;
-    }
-    if (timeout < 0) {
-        err = ERR_TIMEOUT_EXC;
-        goto exit;
-    }
-
-    //deactivate PSD
-    _gs_control_psd(4);
-
-    //Get profile status (if already linked, ignore the following configuration)
-    // i = _g350_query_psd(8,NULL,NULL);
-    // if(i==1) {
-        // goto exit;
-    // }
-    //configure PSD: give apn first, then username, password and authmode
-    err = g350exc;
-    if (!_g350_configure_psd(1,apn,apn_len))
-        goto exit;
-    if (user_len) {
-        if (!_g350_configure_psd(2, user, user_len))
-            goto exit;
-    }
-    if (password_len) {
-        if (!_g350_configure_psd(3, password, password_len))
-        goto exit;
-    }
-    if (!_g350_configure_psd(6, NULL, authmode))
-            goto exit;
-
-    //activate PSD
-    gs.attached = 0;
-    if (!_gs_control_psd(3))
-        goto exit;
-
-    //wait for attached (set by +UUPSDA or queried by +UPSND)
-    timeout = wtimeout;
-    while (timeout > 0) {
-        if (gs.attached)
-            break;
-        vosThSleep(TIME_U(1000, MILLIS));
-        timeout -= 1000;
-        if (_g350_query_psd(8, NULL, NULL)) {
-            gs.attached = 1;
-            break;
-        }
-    }
-    if (timeout < 0)
-        err = ERR_TIMEOUT_EXC;
-    else
-        err = ERR_OK;
-
-    exit:
-    ACQUIRE_GIL();
-    *res = MAKE_NONE();
-    return err;
-}
 
 /**
  * @brief _g350_operators retrieve the operator list and converts it to a tuple
@@ -1822,13 +1736,13 @@ C_NATIVE(_g350_link_info)
 
     RELEASE_GIL();
 
-    if (_g350_query_psd(0, &addr, &addrlen)) {
+    if (_gs_query_psd(0, &addr, &addrlen)) {
         ips = pstring_new(addrlen - 2, addr + 1);
     } else {
         ips = pstring_new(0, NULL);
     }
 
-    if (_g350_query_psd(1,&addr,&addrlen)) {
+    if (_gs_query_psd(1,&addr,&addrlen)) {
         dns = pstring_new(addrlen - 2, addr + 1);
     } else {
         dns = pstring_new(0, NULL);

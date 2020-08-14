@@ -178,3 +178,96 @@ C_NATIVE(_g350_detach)
     ACQUIRE_GIL();
     return err;
 }
+
+/**
+ * @brief _g350_attach tries to link to the given APN
+ *
+ * This function can block for a very long time (up to 2 minutes) due to long timeout of used AT commands
+ */
+C_NATIVE(_g350_attach)
+{
+    NATIVE_UNWARN();
+    uint8_t* apn;
+    uint32_t apn_len;
+    uint8_t* user;
+    uint32_t user_len;
+    uint8_t* password;
+    uint32_t password_len;
+    uint32_t authmode;
+    int32_t timeout;
+    int32_t wtimeout;
+    int32_t err = ERR_OK;
+
+    if (parse_py_args("sssii", nargs, args, &apn, &apn_len, &user, &user_len, &password, &password_len, &authmode, &wtimeout) !=5 )
+        return ERR_TYPE_EXC;
+
+    *res = MAKE_NONE();
+    RELEASE_GIL();
+
+    err = _gs_attach();
+    if (err)
+        goto exit;
+
+    //wait until timeut or GPRS attached (by urc +CREG or +CIEV)
+    timeout = wtimeout;
+    while (timeout > 0) {
+        _gs_check_network();
+        if (gs.registered == GS_REG_OK || gs.registered == GS_REG_ROAMING)
+            break;
+        vosThSleep(TIME_U(100, MILLIS));
+        timeout -= 100;
+    }
+    if (timeout < 0) {
+        err = ERR_TIMEOUT_EXC;
+        goto exit;
+    }
+
+    //deactivate PSD
+    _gs_control_psd(4);
+
+    //Get profile status (if already linked, ignore the following configuration)
+    // i = _gs_query_psd(8,NULL,NULL);
+    // if(i==1) {
+        // goto exit;
+    // }
+    //configure PSD: give apn first, then username, password and authmode
+    err = g350exc;
+    if (!_gs_configure_psd(1, apn, apn_len))
+        goto exit;
+    if (user_len) {
+        if (!_gs_configure_psd(2, user, user_len))
+            goto exit;
+    }
+    if (password_len) {
+        if (!_gs_configure_psd(3, password, password_len))
+        goto exit;
+    }
+    if (!_gs_configure_psd(6, NULL, authmode))
+            goto exit;
+
+    //activate PSD
+    gs.attached = 0;
+    if (!_gs_control_psd(3))
+        goto exit;
+
+    //wait for attached (set by +UUPSDA or queried by +UPSND)
+    timeout = wtimeout;
+    while (timeout > 0) {
+        if (gs.attached)
+            break;
+        vosThSleep(TIME_U(1000, MILLIS));
+        timeout -= 1000;
+        if (_gs_query_psd(8, NULL, NULL)) {
+            gs.attached = 1;
+            break;
+        }
+    }
+    if (timeout < 0)
+        err = ERR_TIMEOUT_EXC;
+    else
+        err = ERR_OK;
+
+exit:
+    ACQUIRE_GIL();
+    return err;
+}
