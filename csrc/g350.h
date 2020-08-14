@@ -217,3 +217,4 @@ void _gs_loop(void* args);
 int _gs_poweron(void);
 int _gs_wait_for_ok(int timeout);
 int _gs_config0(void);
+int _gs_control_psd(int tag);

@@ -161,3 +161,20 @@ C_NATIVE(_g350_bypass){
     }
     return err;
 }
+
+/**
+ * @brief _bg96_detach removes the link with the APN while keeping connected to the GSM network
+ */
+C_NATIVE(_g350_detach)
+{
+    NATIVE_UNWARN();
+    int err = ERR_OK;
+    *res = MAKE_NONE();
+    RELEASE_GIL();
+
+    if(!_gs_control_psd(4))
+        err = g350exc;
+
+    ACQUIRE_GIL();
+    return err;
+}

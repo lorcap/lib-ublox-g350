@@ -1177,7 +1177,7 @@ int _g350_check_network(void)
  *
  * @return 0 on failure
  */
-int _g350_control_psd(int tag)
+int _gs_control_psd(int tag)
 {
     GSSlot* slot;
     slot = _gs_acquire_slot(GS_CMD_UPSDA, NULL, 0, GS_TIMEOUT * 60 * 3, 0);
@@ -1454,17 +1454,6 @@ int _gs_tls_set(int sock)
 extern int32_t g350exc;
 
 /**
- * @brief _g350_detach removes the link with the APN while keeping connected to the GSM network
- *
- *
- */
-C_NATIVE(_g350_detach)
-{
-    NATIVE_UNWARN();
-    return ERR_OK;
-}
-
-/**
  * @brief _g350_attach tries to link to the given APN
  *
  * This function can block for a very long time (up to 2 minutes) due to long timeout of used AT commands
@@ -1522,7 +1511,7 @@ C_NATIVE(_g350_attach)
     }
 
     //deactivate PSD
-    _g350_control_psd(4);
+    _gs_control_psd(4);
 
     //Get profile status (if already linked, ignore the following configuration)
     // i = _g350_query_psd(8,NULL,NULL);
@@ -1546,7 +1535,7 @@ C_NATIVE(_g350_attach)
 
     //activate PSD
     gs.attached = 0;
-    if (!_g350_control_psd(3))
+    if (!_gs_control_psd(3))
         goto exit;
 
     //wait for attached (set by +UUPSDA or queried by +UPSND)
