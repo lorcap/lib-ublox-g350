@@ -70,6 +70,8 @@ typedef struct _gs_operator {
 
 typedef struct _gsm_status{
     uint8_t initialized;
+    uint8_t volatile talking;
+    uint8_t volatile running;
     uint8_t attached;
     uint8_t registered;
     int8_t secure_sock_id;
@@ -100,7 +102,7 @@ typedef struct _gsm_status{
 
 #define GS_ERR_OK      0
 #define GS_ERR_TIMEOUT 1
-
+#define GS_ERR_INVALID 2
 
 #define GS_REG_DENIED  2
 #define GS_REG_NOT     0
@@ -209,6 +211,8 @@ static const GSCmd gs_commands[] = {
 extern GStatus gs;
 
 void _gs_init(void);
+int _gs_start(void);
+int _gs_stop(void);
 void _gs_loop(void* args);
 int _gs_poweron(void);
 int _gs_config0(void);

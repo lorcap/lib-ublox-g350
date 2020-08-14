@@ -55,21 +55,50 @@ C_NATIVE(_g350_init)
     gs.rts = rts;
     gs.poweron = poweron;
     gs.reset = reset;
+    ACQUIRE_GIL();
+
+    return err;
+}
+
+/**
+ * @brief Setup modem serial port, AT configuration and start modem thread
+ */
+C_NATIVE(_g350_startup)
+{
+    NATIVE_UNWARN();
+    int32_t err = ERR_OK;
+    *res = MAKE_NONE();
+
+    RELEASE_GIL();
+    vosSemWait(gs.slotlock);
+
+    if (_gs_stop() != 0)
+        err = ERR_HARDWARE_INITIALIZATION_ERROR;
+    else
     if (!_gs_poweron()) {
         err = ERR_HARDWARE_INITIALIZATION_ERROR;
     }
+    else
+    if (!_gs_config0())
+        err = ERR_HARDWARE_INITIALIZATION_ERROR;
     else {
-        if (!_gs_config0())
-            err = ERR_HARDWARE_INITIALIZATION_ERROR;
+        if (gs.thread==NULL){
+            //let's start modem thread (if not already started)
+            printf("Starting modem thread with size %i\n", VM_DEFAULT_THREAD_SIZE);
+            gs.thread = vosThCreate(VM_DEFAULT_THREAD_SIZE, VOS_PRIO_NORMAL, _gs_loop, NULL, NULL);
+            vosThResume(gs.thread);
+            vosThSleep(TIME_U(1000, MILLIS)); // let modem thread have a chance to start
+        }
     }
+    // reset driver status (assuming modem has restarted)
+    gs.attached = 0;
+    gs.registered = 0;
+
+    // start loop and wait
+    if (_gs_start() != 0)
+        err = ERR_HARDWARE_INITIALIZATION_ERROR;
+
+    vosSemSignal(gs.slotlock);
     ACQUIRE_GIL();
-
-    if (err==ERR_OK){
-        //let's start modem thread
-        printf("Starting modem thread with size %i\n", VM_DEFAULT_THREAD_SIZE);
-        gs.thread = vosThCreate(VM_DEFAULT_THREAD_SIZE, VOS_PRIO_NORMAL, _gs_loop, NULL, NULL);
-        vosThResume(gs.thread);
-    }
-
     return err;
 }

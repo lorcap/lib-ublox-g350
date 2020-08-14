@@ -79,17 +79,71 @@ void _gs_socket_pending(int id);
 void _gs_init(void)
 {
     int i;
-    printf("Initializing GSM\n");
-    for (i = 0; i < MAX_SOCKS; i++) {
-        gs_sockets[i].lock = vosSemCreate(1);
-        gs_sockets[i].rx = vosSemCreate(0);
+    if (!gs.initialized) {
+        printf("Initializing GSM\n");
+        for (i = 0; i < MAX_SOCKS; i++) {
+            gs_sockets[i].lock = vosSemCreate(1);
+            gs_sockets[i].rx = vosSemCreate(0);
+        }
+        memset(&gs, 0, sizeof(GStatus));
+        gs.slotlock = vosSemCreate(1);
+        gs.sendlock = vosSemCreate(1);
+        gs.slotdone = vosSemCreate(0);
+        gs.secure_sock_id = -1;
+        gs.initialized = 1;
+        gs.talking = 0;
+        gs.running = 0;
     }
-    memset(&gs, 0, sizeof(GStatus));
-    gs.slotlock = vosSemCreate(1);
-    gs.sendlock = vosSemCreate(1);
-    gs.slotdone = vosSemCreate(0);
-    gs.secure_sock_id = -1;
-    gs.initialized = 0;
+}
+
+/**
+ * @brief Start modem loop and wait for running state
+ *
+ * @return 0 on success
+ */
+int _gs_start(void)
+{
+    int i;
+    if (!gs.talking) {
+        gs.talking = 1;
+        for (i = 30; i > 0; --i) {
+            printf("waiting modem loop %i\n",i);
+            if (gs.running)
+                break;
+            vosThSleep(TIME_U(100, MILLIS));
+        }
+        if (i == 0)
+            return GS_ERR_TIMEOUT;
+    }
+    if (!gs.running)
+        return GS_ERR_INVALID;
+    printf("started.\n");
+    return GS_ERR_OK;
+}
+
+/**
+ * @brief Stop modem loop and wait for idle state
+ *
+ * @return 0 on success
+ */
+int _gs_stop(void)
+{
+    int i;
+    if (gs.talking) {
+        gs.talking = 0;
+        for (i = 50; i > 0; --i) {
+            printf("waiting modem loop %i\n",i);
+            if (!gs.running)
+                break;
+            vosThSleep(TIME_U(100, MILLIS));
+        }
+        if (i == 0)
+            return GS_ERR_TIMEOUT;
+    }
+    if (gs.running)
+        return GS_ERR_INVALID;
+    printf("stopped.\n");
+    return GS_ERR_OK;
 }
 
 /**
@@ -105,7 +159,7 @@ void _gs_done(void)
  * @brief Begin the power up phase
  *
  * The function is tuned to G350 timings. It sets DTR and RTS to 0 to disable
- * hardware flow control. Sends an "AT" to the module until a response is received.
+ * hardware flow control.
  *
  * @return 0 on success
  */
@@ -117,7 +171,8 @@ int _gs_poweron(void)
     vhalPinSetMode(gs.reset, PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.reset, 1);
 
-    vhalSerialInit(gs.serial, 115200, SERIAL_CFG(SERIAL_PARITY_NONE,SERIAL_STOP_ONE, SERIAL_BITS_8,0,0), gs.rx, gs.tx);
+    if (vhalSerialInit(gs.serial, 115200, SERIAL_CFG(SERIAL_PARITY_NONE,SERIAL_STOP_ONE, SERIAL_BITS_8, 0, 0), gs.rx, gs.tx) != 0)
+        return 1;
 
     vhalPinSetMode(gs.dtr, PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.dtr, 0);
@@ -125,39 +180,7 @@ int _gs_poweron(void)
     vhalPinSetMode(gs.rts, PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.rts, 0);
 
-    int retries = 0;
-
-   for (; retries < 20; retries++) {
-        printf("Power up sequence %i\n",retries);
-        //poweron
-        vhalPinWrite(gs.poweron, 0);
-        vosThSleep(TIME_U(100, MILLIS));  //minimum time 5 ms...let's be abundant :)
-        vhalPinWrite(gs.poweron, 1);
-
-        //reset
-        if (retries == 10) {
-            vhalPinWrite(gs.reset, 0);
-            vosThSleep(TIME_U(500, MILLIS)); //minimum time 50 ms
-            vhalPinWrite(gs.reset, 1);
-        }
-
-        _gs_read(-1);
-        vhalSerialWrite(gs.serial, "AT\r\n", 4);
-        vosThSleep(TIME_U(100, MILLIS));
-        if (_gs_wait_for_ok(500)) {
-            retries = -1;
-            break;
-        }
-    }
-
-    if (retries < 0) {
-        printf("poweron ok\n");
-        return 1;
-    }
-    printf("poweron ko\n");
-
     return 0;
-
 }
 
 /**
@@ -528,7 +551,6 @@ int _gs_config0(void)
     if (!_gs_wait_for_ok(500))
         return 0;
 
-    gs.initialized = 1;
     return 1;
 }
 
@@ -830,6 +852,13 @@ void _gs_loop(void* args)
     GSCmd* cmd;
     printf("_gs_loop started\n");
     while (gs.initialized) {
+        // do nothing if serial is not active
+        if (!gs.talking) {
+            gs.running = 0;
+            vosThSleep(TIME_U(500, MILLIS));
+            continue;
+        }
+        gs.running = 1;
         // printf("looping\n");
         if (gs.mode != GS_MODE_PROMPT) {
             if (_gs_readline(100) <= 3) {
