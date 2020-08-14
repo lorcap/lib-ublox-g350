@@ -271,3 +271,34 @@ exit:
     ACQUIRE_GIL();
     return err;
 }
+
+/**
+ * @brief _g350_operators retrieve the operator list and converts it to a tuple
+ *
+ *
+ */
+C_NATIVE(_g350_operators)
+{
+    NATIVE_UNWARN();
+    int i;
+
+    RELEASE_GIL();
+    i = _gs_list_operators();
+    ACQUIRE_GIL();
+    if (i) {
+        *res = MAKE_NONE();
+        return ERR_OK;
+    }
+    PTuple* tpl = ptuple_new(gsopn, NULL);
+    for (i = 0; i < gsopn; i++) {
+        PTuple* tpi = ptuple_new(4, NULL);
+        PTUPLE_SET_ITEM(tpi, 0, PSMALLINT_NEW(gsops[i].type));
+        PTUPLE_SET_ITEM(tpi, 1, pstring_new(gsops[i].fmtl_l, gsops[i].fmt_long));
+        PTUPLE_SET_ITEM(tpi, 2, pstring_new(gsops[i].fmts_l, gsops[i].fmt_short));
+        PTUPLE_SET_ITEM(tpi, 3, pstring_new(gsops[i].fmtc_l, gsops[i].fmt_code));
+        PTUPLE_SET_ITEM(tpl, i, tpi);
+    }
+
+    *res = tpl;
+    return ERR_OK;
+}

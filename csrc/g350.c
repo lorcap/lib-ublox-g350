@@ -67,9 +67,9 @@ static GSocket gs_sockets[MAX_SOCKS];
 //to get the g350 driver attention
 static GSSlot gslot;
 //the list of GSM operators
-static GSOp gsops[MAX_OPS];
+GSOp gsops[MAX_OPS];
 //the number of GSM operators
-static int gsopn=0;
+int gsopn=0;
 
 //Some declarations for socket handling
 void _gs_socket_closing(int id);
@@ -1474,37 +1474,6 @@ int _gs_tls_set(int sock)
 ///////// CNATIVES
 // The following functions are callable from Python.
 // Functions starting with "_" are utility functions called by CNatives
-
-/**
- * @brief _g350_operators retrieve the operator list and converts it to a tuple
- *
- *
- */
-C_NATIVE(_g350_operators)
-{
-    NATIVE_UNWARN();
-    int i;
-
-    RELEASE_GIL();
-    i = _gs_list_operators();
-    ACQUIRE_GIL();
-    if (i) {
-        *res = MAKE_NONE();
-        return ERR_OK;
-    }
-    PTuple* tpl = ptuple_new(gsopn, NULL);
-    for (i = 0; i < gsopn; i++) {
-        PTuple* tpi = ptuple_new(4, NULL);
-        PTUPLE_SET_ITEM(tpi, 0, PSMALLINT_NEW(gsops[i].type));
-        PTUPLE_SET_ITEM(tpi, 1, pstring_new(gsops[i].fmtl_l, gsops[i].fmt_long));
-        PTUPLE_SET_ITEM(tpi, 2, pstring_new(gsops[i].fmts_l, gsops[i].fmt_short));
-        PTUPLE_SET_ITEM(tpi, 3, pstring_new(gsops[i].fmtc_l, gsops[i].fmt_code));
-        PTUPLE_SET_ITEM(tpl, i, tpi);
-    }
-
-    *res = tpl;
-    return ERR_OK;
-}
 
 /**
  * @brief _g360_set_operator try to set the current operator given its name

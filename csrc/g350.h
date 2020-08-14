@@ -209,6 +209,8 @@ static const GSCmd gs_commands[] = {
 };
 
 extern GStatus gs;
+extern GSOp gsops[MAX_OPS];
+extern int gsopn;
 
 void _gs_init(void);
 int _gs_start(void);
@@ -221,4 +223,5 @@ int _gs_config0(void);
 int _gs_control_psd(int tag);
 int _gs_configure_psd(int tag, uint8_t* param, int len);
 int _gs_query_psd(int query, uint8_t** param, uint32_t* param_len);
+int _gs_list_operators(void);
 int _gs_check_network(void);
