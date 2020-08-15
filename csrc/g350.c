@@ -1622,41 +1622,6 @@ int _gs_tls_set(int sock)
 // The following functions are callable from Python.
 // Functions starting with "_" are utility functions called by CNatives
 
-/**
- * @brief _g350_link_info retrieves ip and dns by means of +UPSND
- *
- *
- */
-C_NATIVE(_g350_link_info)
-{
-    NATIVE_UNWARN();
-    PString* ips;
-    PString* dns;
-    uint8_t* addr;
-    uint32_t addrlen;
-
-    RELEASE_GIL();
-
-    if (_gs_query_psd(0, &addr, &addrlen)) {
-        ips = pstring_new(addrlen - 2, addr + 1);
-    } else {
-        ips = pstring_new(0, NULL);
-    }
-
-    if (_gs_query_psd(1,&addr,&addrlen)) {
-        dns = pstring_new(addrlen - 2, addr + 1);
-    } else {
-        dns = pstring_new(0, NULL);
-    }
-
-    ACQUIRE_GIL();
-    PTuple *tpl = ptuple_new(2, NULL);
-    PTUPLE_SET_ITEM(tpl, 0, ips);
-    PTUPLE_SET_ITEM(tpl, 1, dns);
-    *res = tpl;
-    return ERR_OK;
-}
-
 C_NATIVE(_g350_socket_create)
 {
     NATIVE_UNWARN();
