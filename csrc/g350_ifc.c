@@ -381,3 +381,34 @@ C_NATIVE(_g350_network_info)
     *res = tpl;
     return ERR_OK;
 }
+
+/**
+ * @brief _g350_mobile_info retrieves info on IMEI and SIM card by means of +CGSN and *CCID
+ */
+C_NATIVE(_g350_mobile_info)
+{
+    NATIVE_UNWARN();
+    uint8_t imei[16];
+    uint8_t iccid[22];
+    int im_len;
+    int ic_len;
+
+    PTuple* tpl = ptuple_new(2, NULL);
+    RELEASE_GIL();
+    im_len = _gs_imei(imei);
+    ic_len = _gs_iccid(iccid);
+
+    if(im_len <= 0) {
+        PTUPLE_SET_ITEM(tpl, 0, pstring_new(0, NULL));
+    } else {
+        PTUPLE_SET_ITEM(tpl, 0, pstring_new(im_len, imei));
+    }
+    if(ic_len <= 0) {
+        PTUPLE_SET_ITEM(tpl, 1, pstring_new(0, NULL));
+    } else {
+        PTUPLE_SET_ITEM(tpl, 1, pstring_new(ic_len, iccid));
+    }
+    ACQUIRE_GIL();
+    *res = tpl;
+    return ERR_OK;
+}

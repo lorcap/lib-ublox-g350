@@ -1290,6 +1290,48 @@ int _g350_get_rtc(uint8_t* time)
     return res;
 }
 
+int _gs_imei(uint8_t* imei)
+{
+    int res = -1;
+    GSSlot* slot;
+
+    slot = _gs_acquire_slot(GS_CMD_CGSN, NULL, 64, GS_TIMEOUT * 10, 1);
+    _gs_send_at(GS_CMD_CGSN, "");
+    _gs_wait_for_slot();
+    if (!slot->err) {
+        uint8_t* se = _gs_advance_to(slot->resp, slot->eresp, "\r\n");
+        if (se) {
+            res = MIN(16, se - slot->resp);
+            memcpy(imei, slot->resp, res);
+        } else {
+            res = 0;
+        }
+    }
+    _gs_release_slot(slot);
+    return res;
+}
+
+int _gs_iccid(uint8_t* iccid)
+{
+    int res = -1;
+    int l0;
+    uint8_t* s0 = NULL;
+    GSSlot* slot;
+    slot = _gs_acquire_slot(GS_CMD_CCID, NULL, 64, GS_TIMEOUT * 10, 1);
+    _gs_send_at(GS_CMD_CCID, "");
+    _gs_wait_for_slot();
+    if (!slot->err) {
+        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "s", &s0, &l0) != 1) {
+            res = 0;
+        } else if (s0) {
+            res = MIN(22, l0);
+            memcpy(iccid, s0, res);
+        }
+    }
+    _gs_release_slot(slot);
+    return res;
+}
+
 /**
  * @brief strings for network types
  */
@@ -1579,59 +1621,6 @@ int _gs_tls_set(int sock)
 ///////// CNATIVES
 // The following functions are callable from Python.
 // Functions starting with "_" are utility functions called by CNatives
-
-/**
- * @brief _g350_mobile_info retrieves info on IMEI and SIM card by means of +CGSN and *CCID
- *
- *
- */
-C_NATIVE(_g350_mobile_info)
-{
-    NATIVE_UNWARN();
-
-    PTuple* tpl = ptuple_new(2, NULL);
-
-    //IMEI : CGN
-    //SIM : CCID
-    GSSlot* slot;
-    RELEASE_GIL();
-
-    //GET IMEI
-    slot = _gs_acquire_slot(GS_CMD_CGSN, NULL, 64, GS_TIMEOUT * 10, 1);
-    _gs_send_at(GS_CMD_CGSN, "");
-    _gs_wait_for_slot();
-    if (!slot->err) {
-        uint8_t* se = _gs_advance_to(slot->resp, slot->eresp, "\r\n");
-        if (se) {
-            PTUPLE_SET_ITEM(tpl, 0, pstring_new(se-slot->resp, slot->resp));
-        }
-    }
-    _gs_release_slot(slot);
-
-    //GET SIM SN
-    slot = _gs_acquire_slot(GS_CMD_CCID, NULL, 64, GS_TIMEOUT * 10, 1);
-    _gs_send_at(GS_CMD_CCID, "");
-    _gs_wait_for_slot();
-    if (!slot->err) {
-        uint8_t* s0;
-        uint32_t l0;
-        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "s", &s0, &l0) == 1) {
-            PTUPLE_SET_ITEM(tpl, 1, pstring_new(l0, s0));
-        }
-    }
-    _gs_release_slot(slot);
-
-    if (!PTUPLE_ITEM(tpl, 0)) {
-        PTUPLE_SET_ITEM(tpl, 0, pstring_new(0, NULL));
-    }
-    if (!PTUPLE_ITEM(tpl, 1)) {
-        PTUPLE_SET_ITEM(tpl, 1, pstring_new(0, NULL));
-    }
-
-    ACQUIRE_GIL();
-    *res =tpl;
-    return ERR_OK;
-}
 
 /**
  * @brief _g350_link_info retrieves ip and dns by means of +UPSND
