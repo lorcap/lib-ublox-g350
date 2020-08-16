@@ -445,3 +445,25 @@ C_NATIVE(_g350_link_info)
     *res = tpl;
     return ERR_OK;
 }
+
+// /////////////////////DNS
+
+C_NATIVE(_g350_resolve)
+{
+    C_NATIVE_UNWARN();
+    uint8_t* url;
+    uint32_t len;
+    uint8_t addr[16];
+    int addrlen;
+
+    if (parse_py_args("s", nargs, args, &url, &len) != 1)
+        return ERR_TYPE_EXC;
+
+    RELEASE_GIL();
+    addrlen = _gs_resolve(url, len, addr);
+    ACQUIRE_GIL();
+    if (addrlen < 0)
+        return ERR_IOERROR_EXC;
+    *res = pstring_new(addrlen, addr);
+    return ERR_OK;
+}

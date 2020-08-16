@@ -1098,6 +1098,30 @@ void _gs_socket_pending(int id)
     vosSemSignal(sock->lock);
 }
 
+int _gs_resolve(uint8_t* url, int len, uint8_t* addr)
+{
+    uint8_t* saddr;
+    uint32_t saddrlen;
+    int res = 0;
+    GSSlot* slot;
+
+    slot = _gs_acquire_slot(GS_CMD_UDNSRN, NULL, 128, GS_TIMEOUT * 70, 1);
+    _gs_send_at(GS_CMD_UDNSRN, "=i,\"s\"", 0, url, len);
+    _gs_wait_for_slot();
+    if (slot->err) {
+        res = -1;
+    } else {
+        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "s", &saddr, &saddrlen) == 1) {
+            res = saddrlen - 2;
+            memcpy(addr, saddr + 1, res);
+        } else {
+            res = -1;
+        }
+    }
+    _gs_release_slot(slot);
+    return res;
+}
+
 /**
  * @brief Retrieve the list of operators with +COPS test command
  *
@@ -2273,37 +2297,6 @@ exit:
 
     ACQUIRE_GIL();
 
-    return err;
-}
-
-// /////////////////////DNS
-
-C_NATIVE(_g350_resolve)
-{
-    C_NATIVE_UNWARN();
-    uint8_t* url;
-    uint32_t len;
-    uint8_t* saddr;
-    uint32_t saddrlen;
-    int err = ERR_OK;
-    if (parse_py_args("s", nargs, args, &url, &len) != 1)
-        return ERR_TYPE_EXC;
-    GSSlot* slot;
-    RELEASE_GIL();
-    slot = _gs_acquire_slot(GS_CMD_UDNSRN, NULL, 128, GS_TIMEOUT * 70, 1);
-    _gs_send_at(GS_CMD_UDNSRN, "=i,\"s\"", 0, url, len);
-    _gs_wait_for_slot();
-    if (slot->err) {
-        err = ERR_IOERROR_EXC;
-    } else {
-        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "s", &saddr, &saddrlen) == 1) {
-            *res = pstring_new(saddrlen-  2, saddr + 1);
-        } else {
-            err = ERR_IOERROR_EXC;
-        }
-    }
-    _gs_release_slot(slot);
-    ACQUIRE_GIL();
     return err;
 }
 

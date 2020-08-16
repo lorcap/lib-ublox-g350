@@ -237,3 +237,4 @@ int _gs_get_rat(void);
 int _gs_cell_info(int* mcc, int* mnc);
 int _gs_imei(uint8_t* imei);
 int _gs_iccid(uint8_t* iccid);
+int _gs_resolve(uint8_t* url, int len, uint8_t* addr);
