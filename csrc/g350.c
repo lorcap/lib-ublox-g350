@@ -1545,7 +1545,7 @@ int _gs_socket_error(int sock)
     return p0;
 }
 
-int _g350_usocr(int proto)
+int _gs_usocr(int proto)
 {
     int err;
     GSSlot* slot = _gs_acquire_slot(GS_CMD_USOCR, NULL, 32, GS_TIMEOUT * 2, 1);
@@ -1664,7 +1664,7 @@ C_NATIVE(_g350_socket_create)
     proto = (type == DRV_SOCK_DGRAM) ? 17 : 6;
 
     RELEASE_GIL();
-    err = _g350_usocr(proto);
+    err = _gs_usocr(proto);
     if(err<0) {
         err = ERR_IOERROR_EXC;
     } else {
@@ -2279,7 +2279,7 @@ C_NATIVE(_g350_secure_socket)
         if(_gs_tls_load(2,pkeybuf,pkeylen-1)) goto exit;
     }
 
-    err = _g350_usocr(6); //TCP
+    err = _gs_usocr(6); //TCP
     if(err<0){
         err = ERR_IOERROR_EXC;
     } else {
