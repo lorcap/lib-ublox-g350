@@ -398,9 +398,6 @@ uint8_t* _gs_parse_number(uint8_t* buf, uint8_t* ebuf, int32_t* result)
  * buf is modified in place by null terminating each parameter at the rightmost delimiter, and a pointer to the string parameter
  * is returned.
  *
- * Since buf is modified, arguments can be parsed only once. TODO: consider removing null termination since it is a feature
- * needed for debug only (printf)
- *
  * @param[in]  buf   starting point
  * @param[in]  ebuf  ending point (not included)
  * @param[in]  fmt   format string
@@ -424,7 +421,7 @@ int _gs_parse_command_arguments(uint8_t* buf, uint8_t* ebuf, const char* fmt, ..
         if (!buf)
             break;
         pme = buf - 1;
-        *buf=0;
+        //*buf=0;
         switch (*fmt) {
         case 0:
             goto exit;
@@ -438,12 +435,18 @@ int _gs_parse_command_arguments(uint8_t* buf, uint8_t* ebuf, const char* fmt, ..
             }
             ret++;
             break;
+        case 'S': // remove quotes if present
+            if (*pms == '\"')
+                pms++;
+            if (*pme == '\"')
+                pme--;
+            // fall through
         case 's':
             sparam = va_arg(vl, uint8_t**);
             iparam = va_arg(vl, int32_t*);
             if (sparam)
                 *sparam = pms;
-            *buf=0; //end string
+            //*buf=0; //end string
             if (iparam)
                 *iparam = (pme - pms) + 1; //store len
             ret++;
