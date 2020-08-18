@@ -77,9 +77,10 @@ typedef struct _gsm_status{
     uint8_t volatile running;
     uint8_t attached;
     uint8_t registered;
+    uint8_t gsm_status;
+    uint8_t gprs_status;
     int8_t secure_sock_id;
     uint8_t gprs;
-    uint8_t gprs_mode;
     uint8_t errlen;
     uint8_t mode;
     uint8_t rssi;
@@ -102,6 +103,7 @@ typedef struct _gsm_status{
     uint8_t lac[MAX_LAC_LEN];
     uint8_t ci[MAX_CI_LEN];
     uint8_t bsic[MAX_BSIC_LEN];
+    uint8_t tech;
 } GStatus;
 
 //DEFINES
@@ -115,6 +117,10 @@ typedef struct _gsm_status{
 #define GS_REG_NOT     0
 #define GS_REG_OK      1
 #define GS_REG_ROAMING 3
+
+// Radio Access Technology (bit field)
+#define GS_RAT_GSM      0x01
+#define GS_RAT_GPRS     0x02
 
 #define KNOWN_COMMANDS (sizeof(gs_commands) / sizeof(GSCmd))
 #define GS_MIN(a)   (((a) < (gs.bytes)) ? (a) : (gs.bytes))

@@ -1204,6 +1204,34 @@ int _gs_set_operator(uint8_t *opname, uint32_t oplen)
     return 0;
 }
 
+void _gs_update_network_status(uint8_t *lac, int lac_len, uint8_t *ci, int ci_len)
+{
+    gs.tech = 0; // start with none
+    if (gs.gprs_status >= GS_REG_OK)
+        gs.tech |= GS_RAT_GPRS; // add GPRS
+    if (gs.gsm_status >= GS_REG_OK)
+        gs.tech |= GS_RAT_GSM; // add GSM
+
+    if (gs.tech == 0) {
+        // neither GSM nor GPRS network is registered
+        memset(gs.lac, 0, MAX_LAC_LEN);
+        memset(gs.ci, 0, MAX_CI_LEN);
+    } else if (lac != NULL && ci != NULL && lac_len > 0 && ci_len > 0) {
+        lac_len = MIN(MAX_LAC_LEN - 1, lac_len);
+        memcpy(gs.lac, lac, lac_len);
+        gs.lac[lac_len] = 0;
+        ci_len = MIN(MAX_CI_LEN - 1, ci_len);
+        memcpy(gs.ci, ci, ci_len);
+        gs.ci[ci_len] = 0;
+    }
+
+    // update network status (data connection)
+    if (gs.tech & GS_RAT_GPRS)
+        gs.registered = gs.gprs_status;
+    else
+        gs.registered = GS_REG_NOT;
+}
+
 int _gs_check_network(void)
 {
     GSSlot* slot;

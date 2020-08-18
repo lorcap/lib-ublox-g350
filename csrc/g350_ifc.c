@@ -93,6 +93,8 @@ C_NATIVE(_g350_startup)
     // reset driver status (assuming modem has restarted)
     gs.attached = 0;
     gs.registered = 0;
+    gs.gsm_status = 0;
+    gs.gprs_status = 0;
 
     // start loop and wait
     if (_gs_start() != 0)
