@@ -113,10 +113,13 @@ typedef struct _gsm_status{
 #define GS_ERR_TIMEOUT 1
 #define GS_ERR_INVALID 2
 
-#define GS_REG_DENIED  2
+// keep order, so that >= OK is registered
 #define GS_REG_NOT     0
-#define GS_REG_OK      1
-#define GS_REG_ROAMING 3
+#define GS_REG_UNKNOWN 1
+#define GS_REG_SEARCH  2
+#define GS_REG_DENIED  3
+#define GS_REG_OK      4
+#define GS_REG_ROAMING 5
 
 // Radio Access Technology (bit field)
 #define GS_RAT_GSM      0x01
@@ -236,6 +239,7 @@ int _gs_config0(void);
 int _gs_control_psd(int tag);
 int _gs_configure_psd(int tag, uint8_t* param, int len);
 int _gs_query_psd(int query, uint8_t** param, uint32_t* param_len);
+int _gs_set_gsm_status_from_creg(uint8_t* buf, uint8_t* ebuf, int from_urc);
 int _gs_list_operators(void);
 int _gs_set_operator(uint8_t *opname, uint32_t oplen);
 int _gs_check_network(void);

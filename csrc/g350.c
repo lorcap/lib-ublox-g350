@@ -620,25 +620,7 @@ void _gs_handle_urc(GSCmd* cmd)
         }
         break;
     case GS_CMD_CREG:
-        nargs = _gs_parse_command_arguments(buf, ebuf, "issi", &p0, &s1, &p1, &s2, &p2, &p3);
-        if (nargs < 1)
-            goto exit_err;
-        switch (p0) {
-        case 3:
-            gs.registered = GS_REG_DENIED;
-            break;
-        case 1:
-        case 5:
-            gs.registered = (p0==1) ? GS_REG_OK : GS_REG_ROAMING;
-            if (nargs == 4) {
-                //got act
-                gs.gprs_mode = p3;
-            }
-            break;
-        default:
-            gs.registered = GS_REG_NOT;
-            break;
-        }
+        _gs_set_gsm_status_from_creg(buf, ebuf, 1);
         break;
     case GS_CMD_UUPSDA:
         nargs = _gs_parse_command_arguments(buf, ebuf, "i", &p0);
@@ -1232,22 +1214,48 @@ void _gs_update_network_status(uint8_t *lac, int lac_len, uint8_t *ci, int ci_le
         gs.registered = GS_REG_NOT;
 }
 
+static const uint8_t reg_status[6] = {
+    GS_REG_NOT, GS_REG_OK, GS_REG_SEARCH, GS_REG_DENIED, GS_REG_UNKNOWN, GS_REG_ROAMING
+};
+
+int _gs_set_gsm_status_from_creg(uint8_t* buf, uint8_t* ebuf, int from_urc)
+{
+    int n, stat;
+    uint8_t *lac = NULL, *ci = NULL;
+    int lac_len = 0, ci_len = 0;
+    int nargs = 0;
+
+    if (!from_urc) {
+        nargs = _gs_parse_command_arguments(buf, ebuf, "iiSS", &n, &stat, lac, lac_len, ci, ci_len);
+        nargs--; // discard 'n'
+    } else {
+        nargs = _gs_parse_command_arguments(buf, ebuf, "iSS", &stat, lac, lac_len, ci, ci_len);
+    }
+    if (nargs < 1)
+        return 0;
+    //update gsm status
+    gs.gsm_status = reg_status[stat];
+
+    if (nargs < 3) {
+        lac = ci = NULL;
+        lac_len = ci_len = 0;
+    }
+    _gs_update_network_status(lac, lac_len, ci, ci_len);
+    return 1;
+}
+
 int _gs_check_network(void)
 {
     GSSlot* slot;
-    int p0, p1, p2;
+    int res = 0;
+
     slot = _gs_acquire_slot(GS_CMD_CREG, NULL, 64, GS_TIMEOUT * 5, 1);
     _gs_send_at(GS_CMD_CREG, "?");
     _gs_wait_for_slot();
-
-    if (_gs_parse_command_arguments(slot->resp, slot->eresp, "ii", &p0, &p1) != 2) {
-        _gs_release_slot(slot);
-        return 0;
-    }
+    res |= _gs_set_gsm_status_from_creg(slot->resp, slot->eresp, 0);
     _gs_release_slot(slot);
-    if (p1 == 1 || p1 == 5)
-        gs.registered = (p1 == 1) ? GS_REG_OK : GS_REG_ROAMING;
-    return p1;
+
+    return res;
 }
 
 /**
