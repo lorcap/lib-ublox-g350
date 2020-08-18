@@ -556,6 +556,9 @@ int _gs_config0(void)
     _gs_send_at(GS_CMD_CREG, "=i", 2);
     if (!_gs_wait_for_ok(500))
         return 0;
+    _gs_send_at(GS_CMD_CGREG, "=i", 2);
+    if (!_gs_wait_for_ok(500))
+        return 0;
 
     return 1;
 }
@@ -621,6 +624,10 @@ void _gs_handle_urc(GSCmd* cmd)
         break;
     case GS_CMD_CREG:
         _gs_set_gsm_status_from_creg(buf, ebuf, 1);
+        break;
+    case GS_CMD_CGREG:
+        //retrieve status of gprs network registration
+        _gs_set_gprs_status_from_cgreg(buf, ebuf, 1);
         break;
     case GS_CMD_UUPSDA:
         nargs = _gs_parse_command_arguments(buf, ebuf, "i", &p0);
@@ -1278,6 +1285,12 @@ int _gs_check_network(void)
     _gs_send_at(GS_CMD_CREG, "?");
     _gs_wait_for_slot();
     res |= _gs_set_gsm_status_from_creg(slot->resp, slot->eresp, 0);
+    _gs_release_slot(slot);
+
+    slot = _gs_acquire_slot(GS_CMD_CGREG, NULL, 64, GS_TIMEOUT * 5, 1);
+    _gs_send_at(GS_CMD_CGREG, "?");
+    _gs_wait_for_slot();
+    res |= _gs_set_gprs_status_from_cgreg(slot->resp, slot->eresp, 0);
     _gs_release_slot(slot);
 
     return res;
