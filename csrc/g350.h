@@ -240,6 +240,7 @@ int _gs_control_psd(int tag);
 int _gs_configure_psd(int tag, uint8_t* param, int len);
 int _gs_query_psd(int query, uint8_t** param, uint32_t* param_len);
 int _gs_set_gsm_status_from_creg(uint8_t* buf, uint8_t* ebuf, int from_urc);
+int _gs_set_gprs_status_from_cgreg(uint8_t* buf, uint8_t* ebuf, int from_urc);
 int _gs_list_operators(void);
 int _gs_set_operator(uint8_t *opname, uint32_t oplen);
 int _gs_check_network(void);

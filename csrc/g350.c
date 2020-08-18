@@ -1244,6 +1244,31 @@ int _gs_set_gsm_status_from_creg(uint8_t* buf, uint8_t* ebuf, int from_urc)
     return 1;
 }
 
+int _gs_set_gprs_status_from_cgreg(uint8_t* buf, uint8_t* ebuf, int from_urc)
+{
+    int n, stat;
+    uint8_t *lac, *ci;
+    int lac_len, ci_len;
+    int nargs = 0;
+
+    if (!from_urc) {
+        nargs = _gs_parse_command_arguments(buf, ebuf, "iiSS", &n, &stat, &lac, &lac_len, &ci, &ci_len);
+        nargs--; // discard 'n'
+    } else {
+        nargs = _gs_parse_command_arguments(buf, ebuf, "iSS", &stat, &lac, &lac_len, &ci, &ci_len);
+    }
+    if (nargs < 1) return 0;
+    //update gprs status
+    gs.gprs_status = reg_status[stat];
+
+    if (nargs < 3) {
+        lac = ci = NULL;
+        lac_len = ci_len = 0;
+    }
+    _gs_update_network_status(lac, lac_len, ci, ci_len);
+    return 1;
+}
+
 int _gs_check_network(void)
 {
     GSSlot* slot;
