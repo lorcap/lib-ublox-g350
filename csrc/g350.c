@@ -909,8 +909,8 @@ void _gs_loop(void* args)
         if (gs.mode != GS_MODE_PROMPT) {
             if (_gs_readline(100) <= 3) {
                 if (
-                    gs.bytes >= 1 && gs.buffer[0] == '>' && gs.slot && gs.slot->cmd->id == GS_CMD_USECMNG) {
-                    //only enter in prompt mode if the current slot is for USECMNG to avoid locks
+                    gs.bytes >= 1 && gs.buffer[0] == '>' && gs.slot && (gs.slot->cmd->id == GS_CMD_USECMNG || gs.slot->cmd->id == GS_CMD_CMGS)) {
+                    //only enter in prompt mode if the current slot is for USECMNG/CMGS to avoid locks
                     printf("GOT PROMPT!\n");
                     gs.mode = GS_MODE_PROMPT;
                     continue;
