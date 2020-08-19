@@ -256,3 +256,5 @@ int _gs_imei(uint8_t* imei);
 int _gs_iccid(uint8_t* iccid);
 int _gs_resolve(uint8_t* url, int len, uint8_t* addr);
 int _gs_get_rtc(uint8_t* time);
+
+int _gs_sms_send(uint8_t* num, int numlen, uint8_t* txt, int txtlen);

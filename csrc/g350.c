@@ -2406,7 +2406,27 @@ exit:
     return err;
 }
 
-///////////////////////SMS
+/////////// SMS HANDLING
+
+int _gs_sms_send(uint8_t* num, int numlen, uint8_t* txt, int txtlen)
+{
+    int res = -2;
+    int mr = -1;
+    GSSlot* slot;
+    slot = _gs_acquire_slot(GS_CMD_CMGS, NULL, 64, GS_TIMEOUT * 120, 1);
+    _gs_send_at(GS_CMD_CMGS, "=\"s\"", num, numlen);
+    res = _gs_wait_for_slot_mode(txt, txtlen, "\x1A", 1);
+    _gs_wait_for_slot();
+    if (!slot->err) {
+        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "i", &mr) == 1) {
+            res = mr;
+        } else {
+            res = -1;
+        }
+    }
+    _gs_release_slot(slot);
+    return res;
+}
 
 ///////////////////////UNDOCUMENTED
 

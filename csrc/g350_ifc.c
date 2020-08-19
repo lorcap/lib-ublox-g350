@@ -507,3 +507,31 @@ C_NATIVE(_g350_rtc)
     }
     return err;
 }
+
+///////////////////////SMS
+
+C_NATIVE(_g350_sms_send){
+    NATIVE_UNWARN();
+    int32_t err = ERR_OK;
+    int32_t numlen;
+    int32_t txtlen;
+    int32_t mr;
+    uint8_t* num;
+    uint8_t* txt;
+    *res = MAKE_NONE();
+
+    if (parse_py_args("ss", nargs, args, &num, &numlen, &txt, &txtlen) != 2)
+        return ERR_TYPE_EXC;
+
+    RELEASE_GIL();
+    mr = _gs_sms_send(num, numlen, txt, txtlen);
+    ACQUIRE_GIL();
+
+    if (mr == -1)
+        *res = PSMALLINT_NEW(-1);
+    else if (mr < 0)
+        err = g350exc;
+    else
+        *res = pinteger_new(mr);
+    return err;
+}
