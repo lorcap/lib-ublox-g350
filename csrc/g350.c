@@ -93,6 +93,7 @@ void _gs_init(void)
         gs.sendlock = vosSemCreate(1);
         gs.slotdone = vosSemCreate(0);
         gs.secure_sock_id = -1;
+        gs.pendingsms = 0;
         gs.initialized = 1;
         gs.talking = 0;
         gs.running = 0;
@@ -935,6 +936,47 @@ void _gs_loop(void* args)
                         if (gs.slot->has_params) {
                             printf("filling slot params for %s\n", cmd->body);
                             _gs_slot_params(cmd);
+                            if (cmd->id == GS_CMD_CMGL) {
+                                int idx;
+                                uint8_t *sta, *oa, *alpha, *scts;
+                                int stalen, oalen, alphalen, sctslen;
+
+                                printf("CMGL\n");
+                                //we are reading sms list
+                                if (_gs_parse_command_arguments(gs.slot->resp, gs.slot->eresp, "issss", &idx, &sta, &stalen, &oa, &oalen, &alpha, &alphalen, &scts, &sctslen) == 5) {
+                                    printf("CMGL parsed\n");
+                                    if (memcmp(sta + stalen - 5, "READ", 4) != 0) {
+                                        //it's not a read or unread sms
+                                        gs.skipsms = 1;
+                                        printf("CMGL skip 1\n");
+
+                                    } else {
+                                        if (gs.cursms >= gs.maxsms - 1 || idx < gs.offsetsms) {
+                                            gs.skipsms = 1;
+                                            printf("CMGL skip 2\n");
+                                        } else {
+                                            printf("CMGL read\n");
+                                            gs.skipsms = 0;
+                                            gs.cursms++;
+                                            //got a new sms
+                                            //copy address
+                                            memcpy(gs.sms[gs.cursms].oaddr, oa + 1, MIN(oalen - 2, 16));
+                                            gs.sms[gs.cursms].oaddrlen = MIN(oalen - 2, 16);
+                                            //copy time
+                                            memcpy(gs.sms[gs.cursms].ts, scts + 1, MIN(sctslen - 2, 24));
+                                            gs.sms[gs.cursms].tslen = MIN(sctslen - 2, 24);
+
+                                            gs.sms[gs.cursms].index = idx;
+
+                                            if (sta[5] == 'U') {
+                                                gs.sms[gs.cursms].unread = 1;
+                                            } else {
+                                                gs.sms[gs.cursms].unread = 0;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         } else {
                             printf("Unexpected params for slot\n");
                         }
@@ -950,7 +992,12 @@ void _gs_loop(void* args)
                         if (gs.slot->has_params == gs.slot->params) {
                             _gs_slot_ok();
                         } else {
-                            printf("Unexpected OK\n");
+                            if (gs.slot->cmd->id == GS_CMD_CMGL) {
+                                //variable args
+                                _gs_slot_ok();
+                            } else {
+                                printf("Unexpected OK %s %i %i\n", gs.slot->cmd->body, gs.slot->params, gs.slot->has_params);
+                            }
                         }
                     } else if (_gs_check_error()) {
                         _gs_slot_error();
