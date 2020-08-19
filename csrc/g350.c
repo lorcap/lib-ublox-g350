@@ -728,7 +728,7 @@ void _gs_wait_for_slot(void)
  *
  * @return 0 on success
  */
-int _gs_wait_for_slot_mode(uint8_t* text, int32_t textlen)
+int _gs_wait_for_slot_mode(uint8_t* text, int32_t textlen, uint8_t* addtxt, int addtxtlen)
 {
     //can be polled!
     int cnt = 0;
@@ -753,6 +753,15 @@ int _gs_wait_for_slot_mode(uint8_t* text, int32_t textlen)
         textlen -= cnt;
         text += cnt;
         printf("Remaining %i\n", textlen);
+    }
+    while (addtxtlen > 0) {
+        cnt = MIN(64, addtxtlen);
+        printf("Sending %i\n", cnt);
+        cnt = vhalSerialWrite(gs.serial, addtxt, cnt);
+        printf("Sent %i\n", cnt);
+        addtxtlen -= cnt;
+        addtxt += cnt;
+        printf("Remaining %i\n", addtxtlen);
     }
     gs.mode = GS_MODE_NORMAL; //back to normal mode
 
@@ -1695,7 +1704,7 @@ int _gs_tls_load(int type, uint8_t* cert, uint32_t certlen)
     int err = 0;
     GSSlot*slot = _gs_acquire_slot(GS_CMD_USECMNG, NULL, 256, GS_TIMEOUT * 20, 1);
     _gs_send_at(GS_CMD_USECMNG, "=i,i,\"s\",i", 0, type,_g350_certnames[type], 8, certlen);
-    err = _gs_wait_for_slot_mode(cert,certlen);
+    err = _gs_wait_for_slot_mode(cert, certlen, NULL, 0);
     _gs_wait_for_slot();
     if (slot->err) {
         err = 1;
