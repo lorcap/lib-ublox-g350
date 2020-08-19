@@ -143,43 +143,46 @@ typedef struct _gsm_status{
 // no answer
 #define GS_RES_NO        2
 
-#define GS_CMD_CCID             0
-#define GS_CMD_CCLK             1
-#define GS_CMD_CGATT            2
-#define GS_CMD_CGED             3
-#define GS_CMD_CGSN             4
-#define GS_CMD_CIEV             5
-#define GS_CMD_CMEE             6
-#define GS_CMD_CMER             7
-#define GS_CMD_COPS             8
-#define GS_CMD_CREG             9
-#define GS_CMD_IPR              10
-#define GS_CMD_UDCONF           11
-#define GS_CMD_UDNSRN           12
-#define GS_CMD_UPSD             13
-#define GS_CMD_UPSDA            14
-#define GS_CMD_UPSND            15
-#define GS_CMD_URAT             16
-#define GS_CMD_USECMNG          17
-#define GS_CMD_USECPRF          18
-#define GS_CMD_USOCL            19
-#define GS_CMD_USOCO            20
-#define GS_CMD_USOCR            21
-#define GS_CMD_USOCTL           22
-#define GS_CMD_USOGO            23
-#define GS_CMD_USOLI            24
-#define GS_CMD_USORD            25
-#define GS_CMD_USORF            26
-#define GS_CMD_USOSEC           27
-#define GS_CMD_USOSO            28
-#define GS_CMD_USOST            29
-#define GS_CMD_USOWR            30
-#define GS_CMD_UUPSDA           31
-#define GS_CMD_UUPSDD           32
-#define GS_CMD_UUSOCL           33
-#define GS_CMD_UUSOLI           34
-#define GS_CMD_UUSORD           35
-#define GS_CMD_UUSORF           36
+enum {
+    GS_CMD_CCID,
+    GS_CMD_CCLK,
+    GS_CMD_CGATT,
+    GS_CMD_CGED,
+    GS_CMD_CGSN,
+    GS_CMD_CIEV,
+    GS_CMD_CMEE,
+    GS_CMD_CMER,
+    GS_CMD_COPS,
+    GS_CMD_CREG,
+    GS_CMD_IPR,
+    GS_CMD_UDCONF,
+    GS_CMD_UDNSRN,
+    GS_CMD_UPSD,
+    GS_CMD_UPSDA,
+    GS_CMD_UPSND,
+    GS_CMD_URAT,
+    GS_CMD_USECMNG,
+    GS_CMD_USECPRF,
+    GS_CMD_USOCL,
+    GS_CMD_USOCO,
+    GS_CMD_USOCR,
+    GS_CMD_USOCTL,
+    GS_CMD_USOGO,
+    GS_CMD_USOLI,
+    GS_CMD_USORD,
+    GS_CMD_USORF,
+    GS_CMD_USOSEC,
+    GS_CMD_USOSO,
+    GS_CMD_USOST,
+    GS_CMD_USOWR,
+    GS_CMD_UUPSDA,
+    GS_CMD_UUPSDD,
+    GS_CMD_UUSOCL,
+    GS_CMD_UUSOLI,
+    GS_CMD_UUSORD,
+    GS_CMD_UUSORF,
+};
+
 #define GS_GET_CMD(cmdid) (&gs_commands[cmdid])
 
 static const GSCmd gs_commands[] = {
