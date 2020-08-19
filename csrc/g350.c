@@ -860,7 +860,7 @@ void _gs_loop(void* args)
 {
     (void)args;
     GSCmd* cmd;
-    printf("_gs_loop started\n");
+    printf("_gs_loop started (Thread %d)\n", vosThGetId(vosThCurrent()));
     while (gs.initialized) {
         // do nothing if serial is not active
         if (!gs.talking) {
@@ -902,7 +902,7 @@ void _gs_loop(void* args)
                         } else {
                             printf("Unexpected params for slot\n");
                         }
-                    } else if (cmd->urc) {
+                    } else if (cmd->urc & GS_CMD_URC) {
                         //we parsed a urc
                         printf("Handling urc %s in a slot\n", cmd->body);
                         _gs_handle_urc(cmd);
@@ -930,7 +930,7 @@ void _gs_loop(void* args)
                 // we have no slot
                 if (cmd) {
                     //we have a command
-                    if (cmd->urc) {
+                    if (cmd->urc & GS_CMD_URC) {
                         printf("Handling urc %s out of slot\n", cmd->body);
                         _gs_handle_urc(cmd);
                     } else {
@@ -948,7 +948,7 @@ void _gs_loop(void* args)
             int ss;
             for (ss = 0; ss < 40; ss++) {
                 //avoid locking, max time spendable in prompt mode = 20s
-                vosThSleep(TIME_U(500,MILLIS));
+                vosThSleep(TIME_U(500, MILLIS));
                 if (gs.mode != GS_MODE_PROMPT)
                     break;
             }
