@@ -560,6 +560,26 @@ int _gs_config0(void)
     if (!_gs_wait_for_ok(500))
         return 0;
 
+    //set sms format
+    vhalSerialWrite(gs.serial, "AT+CMGF=1\r\n", 11);
+    if (!_gs_wait_for_ok(500))
+        return 0;
+
+    //set text encoding
+    vhalSerialWrite(gs.serial, "AT+CSCS=\"IRA\"\r\n", 15);
+    if (!_gs_wait_for_ok(500))
+        return 0;
+
+    //get scsa
+    vhalSerialWrite(gs.serial, "AT+CSCA?\r\n", 10);
+    if (!_gs_wait_for_ok(500))
+        return 0;
+
+    //setup sms
+    vhalSerialWrite(gs.serial, "AT+CNMI=2,1,0,0,0\r\n", 19);
+    if (!_gs_wait_for_ok(500))
+        return 0;
+
     return 1;
 }
 
