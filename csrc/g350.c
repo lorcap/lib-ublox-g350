@@ -624,6 +624,10 @@ void _gs_handle_urc(GSCmd* cmd)
         return;
 
     switch (cmd->id) {
+    case GS_CMD_CMTI:
+        //incoming sms
+        gs.pendingsms++;
+        break;
     case GS_CMD_CIEV:
         if (_gs_parse_command_arguments(buf, ebuf, "ii", &p0, &p1) != 2)
             goto exit_err;
