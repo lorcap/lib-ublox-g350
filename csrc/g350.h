@@ -290,3 +290,4 @@ int _gs_sms_send(uint8_t* num, int numlen, uint8_t* txt, int txtlen);
 int _gs_sms_list(int unread, GSSMS* sms, int maxsms, int offset);
 int _gs_sms_delete(int index);
 int _gs_sms_get_scsa(uint8_t* scsa);
+int _gs_sms_set_scsa(uint8_t* scsa, int scsalen);

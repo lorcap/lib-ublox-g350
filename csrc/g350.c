@@ -2552,6 +2552,20 @@ int _gs_sms_get_scsa(uint8_t* scsa)
     return res;
 }
 
+int _gs_sms_set_scsa(uint8_t* scsa, int scsalen)
+{
+    int res = -1;
+    GSSlot* slot;
+    slot = _gs_acquire_slot(GS_CMD_CSCA, NULL, 64, GS_TIMEOUT, 0);
+    _gs_send_at(GS_CMD_CSCA, "=\"s\"", scsa, scsalen);
+    _gs_wait_for_slot();
+    if (!slot->err) {
+        res = 1;
+    }
+    _gs_release_slot(slot);
+    return res;
+}
+
 ///////////////////////UNDOCUMENTED
 
 C_NATIVE(_new_check_network)

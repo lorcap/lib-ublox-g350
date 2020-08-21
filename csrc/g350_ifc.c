@@ -631,3 +631,22 @@ C_NATIVE(_g350_sms_get_scsa){
     ACQUIRE_GIL();
     return err;
 }
+
+C_NATIVE(_g350_sms_set_scsa){
+    NATIVE_UNWARN();
+    int32_t err = ERR_OK;
+    int32_t scsalen, rd;
+    uint8_t *scsa;
+    *res = PBOOL_TRUE();
+
+    if (parse_py_args("s", nargs, args, &scsa, &scsalen) != 1)
+        return ERR_TYPE_EXC;
+
+    RELEASE_GIL();
+    rd = _gs_sms_set_scsa(scsa, scsalen);
+    ACQUIRE_GIL();
+
+    if (rd < 0)
+        *res = PBOOL_FALSE();
+    return err;
+}
