@@ -8,6 +8,9 @@
 #define MAX_LAC_LEN 5
 #define MAX_CI_LEN 5
 #define MAX_BSIC_LEN 3
+#define MAX_SMS_OADDR_LEN 16
+#define MAX_SMS_TS_LEN 24
+#define MAX_SMS_TXT_LEN 160
 #define GS_TIMEOUT 1000
 #define GS_TLS_PROFILE 1
 
@@ -69,6 +72,17 @@ typedef struct _gs_operator {
     uint8_t fmt_code[6];
 }GSOp;
 
+typedef struct _gs_sms {
+    uint8_t oaddr[MAX_SMS_OADDR_LEN];
+    uint8_t ts[MAX_SMS_TS_LEN];
+    uint8_t txt[MAX_SMS_TXT_LEN];
+    uint8_t oaddrlen;
+    uint8_t tslen;
+    uint8_t unread;
+    uint8_t txtlen;
+    int index;
+} GSSMS;
+
 ////////////GSM STATUS
 
 typedef struct _gsm_status{
@@ -104,6 +118,12 @@ typedef struct _gsm_status{
     uint8_t ci[MAX_CI_LEN];
     uint8_t bsic[MAX_BSIC_LEN];
     uint8_t tech;
+    uint8_t skipsms;
+    uint8_t maxsms;
+    int offsetsms;
+    int cursms;
+    int pendingsms;
+    GSSMS* sms;
 } GStatus;
 
 //DEFINES
@@ -260,3 +280,4 @@ int _gs_resolve(uint8_t* url, int len, uint8_t* addr);
 int _gs_get_rtc(uint8_t* time);
 
 int _gs_sms_send(uint8_t* num, int numlen, uint8_t* txt, int txtlen);
+int _gs_sms_list(int unread, GSSMS* sms, int maxsms, int offset);

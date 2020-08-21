@@ -960,11 +960,11 @@ void _gs_loop(void* args)
                                             gs.cursms++;
                                             //got a new sms
                                             //copy address
-                                            memcpy(gs.sms[gs.cursms].oaddr, oa + 1, MIN(oalen - 2, 16));
-                                            gs.sms[gs.cursms].oaddrlen = MIN(oalen - 2, 16);
+                                            memcpy(gs.sms[gs.cursms].oaddr, oa + 1, MIN(oalen - 2, MAX_SMS_OADDR_LEN));
+                                            gs.sms[gs.cursms].oaddrlen = MIN(oalen - 2, MAX_SMS_OADDR_LEN);
                                             //copy time
-                                            memcpy(gs.sms[gs.cursms].ts, scts + 1, MIN(sctslen - 2, 24));
-                                            gs.sms[gs.cursms].tslen = MIN(sctslen - 2, 24);
+                                            memcpy(gs.sms[gs.cursms].ts, scts + 1, MIN(sctslen - 2, MAX_SMS_TS_LEN));
+                                            gs.sms[gs.cursms].tslen = MIN(sctslen - 2, MAX_SMS_TS_LEN);
 
                                             gs.sms[gs.cursms].index = idx;
 
@@ -1006,7 +1006,18 @@ void _gs_loop(void* args)
                         printf("filling slot params for GS_RES_NO\n");
                         _gs_slot_params(gs.slot->cmd);
                     } else {
-                        printf("Unexpected line\n");
+                        if (gs.slot->cmd->id == GS_CMD_CMGL) {
+                            //it's a line of text, read the sms
+                            if (gs.skipsms) {
+                                printf("Skip sms\n");
+                            } else {
+                                printf("reading sms %i\n", gs.bytes);
+                                memcpy(gs.sms[gs.cursms].txt, gs.buffer, MIN(gs.bytes - 2, MAX_SMS_TXT_LEN));
+                                gs.sms[gs.cursms].txtlen = MIN(gs.bytes - 2, MAX_SMS_TXT_LEN);
+                            }
+                        } else {
+                            printf("Unexpected line\n");
+                        }
                     }
                 }
             } else {
@@ -2471,6 +2482,32 @@ int _gs_sms_send(uint8_t* num, int numlen, uint8_t* txt, int txtlen)
             res = -1;
         }
     }
+    _gs_release_slot(slot);
+    return res;
+}
+
+int _gs_sms_list(int unread, GSSMS* sms, int maxsms, int offset)
+{
+    int res = -2;
+    int mr = -1;
+    GSSlot* slot;
+    slot = _gs_acquire_slot(GS_CMD_CMGL, NULL, 64, GS_TIMEOUT * 60, 1);
+    gs.cursms = -1;
+    gs.skipsms = 1;
+    gs.maxsms = maxsms;
+    gs.offsetsms = offset;
+    gs.sms = sms;
+    gs.pendingsms = 0;
+    if (unread) {
+        _gs_send_at(GS_CMD_CMGL, "=\"REC UNREAD\"");
+    } else {
+        _gs_send_at(GS_CMD_CMGL, "=\"ALL\"");
+    }
+    _gs_wait_for_slot();
+    if (slot->err) {
+        res = -1;
+    } else
+        res = gs.cursms + 1;
     _gs_release_slot(slot);
     return res;
 }

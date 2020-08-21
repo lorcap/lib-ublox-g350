@@ -535,3 +535,60 @@ C_NATIVE(_g350_sms_send){
         *res = pinteger_new(mr);
     return err;
 }
+
+C_NATIVE(_g350_sms_list){
+    NATIVE_UNWARN();
+    int32_t err = ERR_OK;
+    int32_t unread;
+    int32_t maxsms;
+    int32_t offset;
+    int32_t msgcnt;
+    int i;
+    *res = MAKE_NONE();
+
+    if (parse_py_args("iii", nargs, args, &unread, &maxsms, &offset) != 3)
+        return ERR_TYPE_EXC;
+
+    GSSMS *sms = gc_malloc(sizeof(GSSMS) * maxsms);
+    RELEASE_GIL();
+    msgcnt = _gs_sms_list(unread, sms, maxsms, offset);
+    ACQUIRE_GIL();
+
+    PTuple *tpl = ptuple_new(msgcnt, NULL);
+    for (i = 0; i < msgcnt; i++) {
+        GSSMS *sm = &sms[i];
+        PTuple *pres = ptuple_new(4, NULL);
+        PTUPLE_SET_ITEM(pres, 0, pstring_new(sm->txtlen, sm->txt));
+        PTUPLE_SET_ITEM(pres, 1, pstring_new(sm->oaddrlen, sm->oaddr));
+        if (sm->tslen < 22) {
+            //bad ts
+            PTUPLE_SET_ITEM(pres, 2, ptuple_new(0, NULL));
+        } else {
+            PTuple *tm = ptuple_new(7, NULL);
+            int nn = 0;
+
+            nn = (sm->ts[0] - '0')*1000 + (sm->ts[1] - '0')*100 + (sm->ts[2] - '0')*10 + (sm->ts[3] - '0');
+            PTUPLE_SET_ITEM(tm, 0, PSMALLINT_NEW(nn));
+            nn = (sm->ts[5] - '0')*10 + (sm->ts[6] - '0');
+            PTUPLE_SET_ITEM(tm, 1, PSMALLINT_NEW(nn));
+            nn = (sm->ts[8] - '0')*10 + (sm->ts[9] - '0');
+            PTUPLE_SET_ITEM(tm, 2, PSMALLINT_NEW(nn));
+            nn = (sm->ts[11] - '0')*10 + (sm->ts[12] - '0');
+            PTUPLE_SET_ITEM(tm, 3, PSMALLINT_NEW(nn));
+            nn = (sm->ts[14] - '0')*10 + (sm->ts[15] - '0');
+            PTUPLE_SET_ITEM(tm, 4, PSMALLINT_NEW(nn));
+            nn = (sm->ts[17] - '0')*10 + (sm->ts[18] - '0');
+            PTUPLE_SET_ITEM(tm, 5, PSMALLINT_NEW(nn));
+            nn = (sm->ts[20] - '0')*10 + (sm->ts[21] - '0');
+            PTUPLE_SET_ITEM(tm, 6, PSMALLINT_NEW(nn*15));
+            PTUPLE_SET_ITEM(pres, 2, tm);
+        }
+
+        PTUPLE_SET_ITEM(pres, 3, PSMALLINT_NEW(sm->index));
+
+        PTUPLE_SET_ITEM(tpl, i, pres);
+    }
+    *res= tpl;
+    gc_free(sms);
+    return err;
+}
