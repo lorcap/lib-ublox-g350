@@ -598,3 +598,21 @@ C_NATIVE(_g350_sms_pending){
     *res = PSMALLINT_NEW(gs.pendingsms);
     return ERR_OK;
 }
+
+C_NATIVE(_g350_sms_delete){
+    NATIVE_UNWARN();
+    int32_t err = ERR_OK;
+    int32_t index, rd;
+    *res = PBOOL_TRUE();
+
+    if (parse_py_args("i", nargs, args, &index) != 1)
+        return ERR_TYPE_EXC;
+
+    RELEASE_GIL();
+    rd = _gs_sms_delete(index);
+    ACQUIRE_GIL();
+
+    if (rd < 0)
+        *res = PBOOL_FALSE();
+    return err;
+}

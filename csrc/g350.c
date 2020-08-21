@@ -2516,6 +2516,21 @@ int _gs_sms_list(int unread, GSSMS* sms, int maxsms, int offset)
     return res;
 }
 
+int _gs_sms_delete(int index)
+{
+    int res;
+    GSSlot* slot;
+    slot = _gs_acquire_slot(GS_CMD_CMGD, NULL, 64, GS_TIMEOUT, 0);
+    _gs_send_at(GS_CMD_CMGD, "=i", index);
+    _gs_wait_for_slot();
+    if (slot->err) {
+        res = -1;
+    } else
+        res = index;
+    _gs_release_slot(slot);
+    return res;
+}
+
 ///////////////////////UNDOCUMENTED
 
 C_NATIVE(_new_check_network)

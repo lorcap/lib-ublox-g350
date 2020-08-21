@@ -173,6 +173,7 @@ enum {
     GS_CMD_CIEV,
     GS_CMD_CMEE,
     GS_CMD_CMER,
+    GS_CMD_CMGD,
     GS_CMD_CMGL,
     GS_CMD_CMGS,
     GS_CMD_CMTI,
@@ -220,6 +221,7 @@ static const GSCmd gs_commands[] = {
     DEF_CMD("+CIEV"   ,   GS_RES_NO, GS_CMD_NORMAL|GS_CMD_URC, GS_CMD_CIEV   ),
     DEF_CMD("+CMEE"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_CMEE   ),
     DEF_CMD("+CMER"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_CMER   ),
+    DEF_CMD("+CMGD"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_CMGD   ),
     DEF_CMD("+CMGL"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_CMGL   ),
     DEF_CMD("+CMGS"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_CMGS   ),
     DEF_CMD("+CMTI"   ,   GS_RES_OK,               GS_CMD_URC, GS_CMD_CMTI   ),
@@ -283,3 +285,4 @@ int _gs_get_rtc(uint8_t* time);
 
 int _gs_sms_send(uint8_t* num, int numlen, uint8_t* txt, int txtlen);
 int _gs_sms_list(int unread, GSSMS* sms, int maxsms, int offset);
+int _gs_sms_delete(int index);
