@@ -616,3 +616,18 @@ C_NATIVE(_g350_sms_delete){
         *res = PBOOL_FALSE();
     return err;
 }
+
+C_NATIVE(_g350_sms_get_scsa){
+    NATIVE_UNWARN();
+    int32_t err = ERR_OK;
+    int32_t scsalen;
+    uint8_t scsa[MAX_SMS_SCSA_LEN];
+
+    RELEASE_GIL();
+    scsalen = _gs_sms_get_scsa(scsa);
+    if (scsalen < 0)
+        scsalen = 0;
+    *res = pstring_new(scsalen, scsa);
+    ACQUIRE_GIL();
+    return err;
+}

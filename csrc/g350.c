@@ -2531,6 +2531,27 @@ int _gs_sms_delete(int index)
     return res;
 }
 
+int _gs_sms_get_scsa(uint8_t* scsa)
+{
+    int res = -2;
+    uint8_t* sc;
+    int sclen;
+    GSSlot* slot;
+    slot = _gs_acquire_slot(GS_CMD_CSCA, NULL, 64, GS_TIMEOUT, 1);
+    _gs_send_at(GS_CMD_CSCA, "?");
+    _gs_wait_for_slot();
+    if (!slot->err) {
+        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "s", &sc, &sclen) == 1) {
+            res = sclen - 2;
+            memcpy(scsa, sc + 1, MIN(res, MAX_SMS_SCSA_LEN));
+        } else {
+            res = -1;
+        }
+    }
+    _gs_release_slot(slot);
+    return res;
+}
+
 ///////////////////////UNDOCUMENTED
 
 C_NATIVE(_new_check_network)

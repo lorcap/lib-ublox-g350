@@ -11,6 +11,7 @@
 #define MAX_SMS_OADDR_LEN 16
 #define MAX_SMS_TS_LEN 24
 #define MAX_SMS_TXT_LEN 160
+#define MAX_SMS_SCSA_LEN 32
 #define GS_TIMEOUT 1000
 #define GS_TLS_PROFILE 1
 
@@ -179,6 +180,7 @@ enum {
     GS_CMD_CMTI,
     GS_CMD_COPS,
     GS_CMD_CREG,
+    GS_CMD_CSCA,
     GS_CMD_IPR,
     GS_CMD_UDCONF,
     GS_CMD_UDNSRN,
@@ -227,6 +229,7 @@ static const GSCmd gs_commands[] = {
     DEF_CMD("+CMTI"   ,   GS_RES_OK,               GS_CMD_URC, GS_CMD_CMTI   ),
     DEF_CMD("+COPS"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_COPS   ),
     DEF_CMD("+CREG"   ,   GS_RES_OK, GS_CMD_NORMAL|GS_CMD_URC, GS_CMD_CREG   ),
+    DEF_CMD("+CSCA"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_CSCA   ),
     DEF_CMD("+IPR"    ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_IPR    ),
     DEF_CMD("+UDCONF" ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_UDCONF ),
     DEF_CMD("+UDNSRN" ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_UDNSRN ),
@@ -286,3 +289,4 @@ int _gs_get_rtc(uint8_t* time);
 int _gs_sms_send(uint8_t* num, int numlen, uint8_t* txt, int txtlen);
 int _gs_sms_list(int unread, GSSMS* sms, int maxsms, int offset);
 int _gs_sms_delete(int index);
+int _gs_sms_get_scsa(uint8_t* scsa);
