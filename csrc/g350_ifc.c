@@ -592,3 +592,9 @@ C_NATIVE(_g350_sms_list){
     gc_free(sms);
     return err;
 }
+
+C_NATIVE(_g350_sms_pending){
+    NATIVE_UNWARN();
+    *res = PSMALLINT_NEW(gs.pendingsms);
+    return ERR_OK;
+}
