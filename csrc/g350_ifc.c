@@ -1,19 +1,9 @@
 #include "zerynth.h"
 #include "g350.h"
+#include "g350_debug.h"
 
 //a reference to a Python exception to be returned on error (g350Exception)
 int32_t g350exc;
-
-#if 1
-#define printf(...) vbl_printf_stdout(__VA_ARGS__)
-#define print_buffer(bf, ln)    for(uint8_t i = 0; i < ln; i++) { \
-                                        printf("%c", bf[i]); \
-                                } \
-                                printf("\n");
-#else
-#define printf(...)
-#define print_buffer(bf, ln)
-#endif
 
 
 ///////// CNATIVES
@@ -84,7 +74,7 @@ C_NATIVE(_g350_startup)
     else {
         if (gs.thread==NULL){
             //let's start modem thread (if not already started)
-            printf("Starting modem thread with size %i\n", VM_DEFAULT_THREAD_SIZE);
+            DEBUG0("Starting modem thread with size %i\n", VM_DEFAULT_THREAD_SIZE);
             gs.thread = vosThCreate(VM_DEFAULT_THREAD_SIZE, VOS_PRIO_NORMAL, _gs_loop, NULL, NULL);
             vosThResume(gs.thread);
             vosThSleep(TIME_U(1000, MILLIS)); // let modem thread have a chance to start

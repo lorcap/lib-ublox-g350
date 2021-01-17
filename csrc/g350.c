@@ -42,17 +42,7 @@
 
 #include "zerynth.h"
 #include "g350.h"
-
-#if 1
-#define printf(...) vbl_printf_stdout(__VA_ARGS__)
-#define print_buffer(bf, ln)    for(uint8_t i = 0; i < ln; i++) { \
-                                        printf("%c", bf[i]); \
-                                } \
-                                printf("\n");
-#else
-#define printf(...)
-#define print_buffer(bf, ln)
-#endif
+#include "g350_debug.h"
 
 //a reference to a Python exception to be returned on error (g350Exception)
 extern int32_t g350exc;
@@ -83,7 +73,7 @@ void _gs_init(void)
 {
     int i;
     if (!gs.initialized) {
-        printf("Initializing GSM\n");
+        DEBUG0("Initializing GSM");
         for (i = 0; i < MAX_SOCKS; i++) {
             gs_sockets[i].lock = vosSemCreate(1);
             gs_sockets[i].rx = vosSemCreate(0);
@@ -111,7 +101,7 @@ int _gs_start(void)
     if (!gs.talking) {
         gs.talking = 1;
         for (i = 30; i > 0; --i) {
-            printf("waiting modem loop %i\n",i);
+            DEBUG0("waiting modem loop %i",i);
             if (gs.running)
                 break;
             vosThSleep(TIME_U(100, MILLIS));
@@ -121,7 +111,7 @@ int _gs_start(void)
     }
     if (!gs.running)
         return GS_ERR_INVALID;
-    printf("started.\n");
+    DEBUG0("started.");
     return GS_ERR_OK;
 }
 
@@ -136,7 +126,7 @@ int _gs_stop(void)
     if (gs.talking) {
         gs.talking = 0;
         for (i = 50; i > 0; --i) {
-            printf("waiting modem loop %i\n",i);
+            DEBUG0("waiting modem loop %i",i);
             if (!gs.running)
                 break;
             vosThSleep(TIME_U(100, MILLIS));
@@ -146,7 +136,7 @@ int _gs_stop(void)
     }
     if (gs.running)
         return GS_ERR_INVALID;
-    printf("stopped.\n");
+    DEBUG0("stopped.");
     return GS_ERR_OK;
 }
 
@@ -220,13 +210,13 @@ int _gs_readline(int timeout)
             vhalSerialRead(gs.serial, buf, 1);
         }
         gs.bytes++;
-        //        printf("->%i\n",gs.bytes);
+        //        DEBUG0("->%i",gs.bytes);
         if (*buf++ == '\n')
             break;
     }
     //terminate for debugging!
     *buf = 0;
-    printf("rl: %s", gs.buffer);
+    DEBUG0("rl: %s", gs.buffer);
     return gs.bytes;
 }
 
@@ -247,7 +237,7 @@ int _gs_read(int bytes)
     vhalSerialRead(gs.serial, gs.buffer, bytes);
     gs.bytes = bytes;
     gs.buffer[gs.bytes+1] = 0;
-    printf("rn: %s||\n",gs.buffer);
+    DEBUG0("rn: %s||",gs.buffer);
     return gs.bytes;
 }
 
@@ -315,7 +305,7 @@ GSCmd* _gs_parse_command_response(void)
     int e0 = 0, e1 = KNOWN_COMMANDS - 1, c = -1, r = 0;
     GSCmd* cmd = NULL;
 
-    // printf("CMD %c%c%c%c%c%c%c%c\n",gs.buffer[0],gs.buffer[1],gs.buffer[2],gs.buffer[3],gs.buffer[4],gs.buffer[5],gs.buffer[6],gs.buffer[7]);
+    // DEBUG0("CMD %c%c%c%c%c%c%c%c",gs.buffer[0],gs.buffer[1],gs.buffer[2],gs.buffer[3],gs.buffer[4],gs.buffer[5],gs.buffer[6],gs.buffer[7]);
     while (e0 <= e1) {
         c = (e0 + e1) / 2;
         cmd = &gs_commands[c];
@@ -330,10 +320,10 @@ GSCmd* _gs_parse_command_response(void)
             break;
     }
     if (e0 <= e1) {
-        //printf("RET CMD %i\n", c);
+        //DEBUG0("RET CMD %i", c);
         return cmd;
     }
-    //printf("NULL cmd\n");
+    //DEBUG0("NULL cmd");
     return NULL;
 }
 
@@ -488,9 +478,9 @@ void _gs_send_at(int cmd_id, const char* fmt, ...)
 
     vosSemWait(gs.sendlock);
     vhalSerialWrite(gs.serial, "AT", 2);
-    printf("->: AT");
+    DEBUG0("->: AT");
     vhalSerialWrite(gs.serial, cmd->body, cmd->len);
-    printf("%s", cmd->body);
+    DEBUG0("->: %s", cmd->body);
     while (*fmt) {
         switch (*fmt) {
         case 'i':
@@ -499,25 +489,24 @@ void _gs_send_at(int cmd_id, const char* fmt, ...)
             iparam_len = modp_itoa10(iparam, _strbuf);
             vhalSerialWrite(gs.serial, _strbuf, iparam_len);
             _strbuf[iparam_len] = 0;
-            printf("%s", _strbuf);
+            DEBUG0("->: %s", _strbuf);
             break;
         case 's':
             sparam = va_arg(vl, uint8_t*);
             iparam_len = va_arg(vl, int32_t*);
             vhalSerialWrite(gs.serial, sparam, iparam_len);
-#if defined(UBLOX_SARA_G350_DEBUG)
+#if ZERYNTH_DEBUG >= 0
             for (iparam = 0; iparam < iparam_len; iparam++)
-                printf("%c", sparam[iparam]);
+                DEBUG0("->: %c", sparam[iparam]);
 #endif
             break;
         default:
             vhalSerialWrite(gs.serial, fmt, 1);
-            printf("%c", *fmt);
+            DEBUG0("->: %c", *fmt);
         }
         fmt++;
     }
     vhalSerialWrite(gs.serial, "\r", 1);
-    printf("\n");
     vosSemSignal(gs.sendlock);
     va_end(vl);
 }
@@ -644,7 +633,7 @@ void _gs_handle_urc(GSCmd* cmd)
             gs.gprs = p1;
             break;
         default:
-            printf("Unhandled +CIEV: %i %i\n", p0, p1);
+            ERROR("Unhandled +CIEV: %i %i", p0, p1);
         }
         break;
     case GS_CMD_CREG:
@@ -678,14 +667,14 @@ void _gs_handle_urc(GSCmd* cmd)
         break;
 
     default:
-        printf("Unhandled URC %i\n", cmd->id);
+        ERROR("Unhandled URC %i", cmd->id);
     }
 
 exit_ok:
     return;
 
 exit_err:
-    printf("Error parsing arguments for %i\n", cmd->id);
+    ERROR("Error parsing arguments for %i", cmd->id);
     return;
 }
 
@@ -757,7 +746,7 @@ int _gs_wait_for_slot_mode(uint8_t* text, int32_t textlen, uint8_t* addtxt, int 
 {
     //can be polled!
     int cnt = 0;
-    printf("Waiting for mode\n");
+    DEBUG0("Waiting for mode");
 
     // vhalSerialWrite(gs.serial,">",1);
     while (gs.mode == GS_MODE_NORMAL && cnt < 100) { //after 10 seconds, timeout
@@ -767,26 +756,26 @@ int _gs_wait_for_slot_mode(uint8_t* text, int32_t textlen, uint8_t* addtxt, int 
 
     if(gs.mode != GS_MODE_PROMPT)
         return 1;
-    printf("Slot wait mode\n");
-    printf("-->%s\n",text);
+    DEBUG0("Slot wait mode");
+    DEBUG0("-->%s",text);
 
     while (textlen > 0) {
         cnt = MIN(64, textlen);
-        printf("Sending %i\n", cnt);
+        DEBUG0("Sending %i", cnt);
         cnt = vhalSerialWrite(gs.serial, text, cnt);
-        printf("Sent %i\n", cnt);
+        DEBUG0("Sent %i", cnt);
         textlen -= cnt;
         text += cnt;
-        printf("Remaining %i\n", textlen);
+        DEBUG0("Remaining %i", textlen);
     }
     while (addtxtlen > 0) {
         cnt = MIN(64, addtxtlen);
-        printf("Sending %i\n", cnt);
+        DEBUG0("Sending %i", cnt);
         cnt = vhalSerialWrite(gs.serial, addtxt, cnt);
-        printf("Sent %i\n", cnt);
+        DEBUG0("Sent %i", cnt);
         addtxtlen -= cnt;
         addtxt += cnt;
-        printf("Remaining %i\n", addtxtlen);
+        DEBUG0("Remaining %i", addtxtlen);
     }
     gs.mode = GS_MODE_NORMAL; //back to normal mode
 
@@ -812,7 +801,7 @@ void _gs_release_slot(GSSlot* slot)
  */
 void _gs_slot_ok(void)
 {
-    printf("ok slot %s\n", gs.slot->cmd->body);
+    DEBUG0("ok slot %s", gs.slot->cmd->body);
     gs.slot->err = 0;
     gs.slot = NULL;
     vosSemSignal(gs.slotdone);
@@ -823,7 +812,7 @@ void _gs_slot_ok(void)
  */
 void _gs_slot_error(void)
 {
-    printf("error slot %s\n", gs.slot->cmd->body);
+    DEBUG0("error slot %s", gs.slot->cmd->body);
     gs.slot->err = 2;
     gs.slot = NULL;
     vosSemSignal(gs.slotdone);
@@ -834,7 +823,7 @@ void _gs_slot_error(void)
  */
 void _gs_slot_timeout(void)
 {
-    printf("timeout slot %s\n", gs.slot->cmd->body);
+    DEBUG0("timeout slot %s", gs.slot->cmd->body);
     gs.slot->err = GS_ERR_TIMEOUT;
     gs.slot = NULL;
     vosSemSignal(gs.slotdone);
@@ -856,7 +845,7 @@ void _gs_slot_params(GSCmd* cmd)
         int csize = (gs.slot->max_size < gs.bytes) ? gs.slot->max_size : gs.bytes;
         memcpy(gs.slot->resp, gs.buffer, csize);
         gs.slot->eresp = gs.slot->resp + csize;
-        // printf("Copy command %s %i %c%c%c\n",cmd->body,csize,*gs.slot->resp,*(gs.slot->resp+1),*(gs.slot->resp+2));
+        // DEBUG0("Copy command %s %i %c%c%c",cmd->body,csize,*gs.slot->resp,*(gs.slot->resp+1),*(gs.slot->resp+2));
     } else {
         if (!_gs_valid_command_response(cmd))
             return;
@@ -901,7 +890,7 @@ void _gs_loop(void* args)
 {
     (void)args;
     GSCmd* cmd;
-    printf("_gs_loop started (Thread %d)\n", vosThGetId(vosThCurrent()));
+    DEBUG0("_gs_loop started (Thread %d)", vosThGetId(vosThCurrent()));
     while (gs.initialized) {
         // do nothing if serial is not active
         if (!gs.talking) {
@@ -910,13 +899,13 @@ void _gs_loop(void* args)
             continue;
         }
         gs.running = 1;
-        // printf("looping\n");
+        // DEBUG0("looping");
         if (gs.mode != GS_MODE_PROMPT) {
             if (_gs_readline(100) <= 3) {
                 if (
                     gs.bytes >= 1 && gs.buffer[0] == '>' && gs.slot && (gs.slot->cmd->id == GS_CMD_USECMNG || gs.slot->cmd->id == GS_CMD_CMGS)) {
                     //only enter in prompt mode if the current slot is for USECMNG/CMGS to avoid locks
-                    printf("GOT PROMPT!\n");
+                    DEBUG0("GOT PROMPT!");
                     gs.mode = GS_MODE_PROMPT;
                     continue;
                 }
@@ -924,7 +913,7 @@ void _gs_loop(void* args)
                 if (gs.slot) {
                     if (gs.slot->timeout && (vosMillis() - gs.slot->stime) > gs.slot->timeout) {
                         //slot timed out
-                        printf("slot timeout\n");
+                        DEBUG0("slot timeout");
                         _gs_slot_timeout();
                     }
                 }
@@ -938,28 +927,28 @@ void _gs_loop(void* args)
                     if (cmd == gs.slot->cmd) {
                         //we parsed the response to slot
                         if (gs.slot->has_params) {
-                            printf("filling slot params for %s\n", cmd->body);
+                            DEBUG0("filling slot params for %s", cmd->body);
                             _gs_slot_params(cmd);
                             if (cmd->id == GS_CMD_CMGL) {
                                 int idx;
                                 uint8_t *sta, *oa, *alpha, *scts;
                                 int stalen, oalen, alphalen, sctslen;
 
-                                printf("CMGL\n");
+                                DEBUG0("CMGL");
                                 //we are reading sms list
                                 if (_gs_parse_command_arguments(gs.slot->resp, gs.slot->eresp, "issss", &idx, &sta, &stalen, &oa, &oalen, &alpha, &alphalen, &scts, &sctslen) == 5) {
-                                    printf("CMGL parsed\n");
+                                    DEBUG0("CMGL parsed");
                                     if (memcmp(sta + stalen - 5, "READ", 4) != 0) {
                                         //it's not a read or unread sms
                                         gs.skipsms = 1;
-                                        printf("CMGL skip 1\n");
+                                        DEBUG0("CMGL skip 1");
 
                                     } else {
                                         if (gs.cursms >= gs.maxsms - 1 || idx < gs.offsetsms) {
                                             gs.skipsms = 1;
-                                            printf("CMGL skip 2\n");
+                                            DEBUG0("CMGL skip 2");
                                         } else {
-                                            printf("CMGL read\n");
+                                            DEBUG0("CMGL read");
                                             gs.skipsms = 0;
                                             gs.cursms++;
                                             //got a new sms
@@ -982,11 +971,11 @@ void _gs_loop(void* args)
                                 }
                             }
                         } else {
-                            printf("Unexpected params for slot\n");
+                            ERROR("Unexpected params for slot");
                         }
                     } else if (cmd->urc & GS_CMD_URC) {
                         //we parsed a urc
-                        printf("Handling urc %s in a slot\n", cmd->body);
+                        DEBUG0("Handling urc %s in a slot", cmd->body);
                         _gs_handle_urc(cmd);
                     }
                 } else {
@@ -1000,27 +989,27 @@ void _gs_loop(void* args)
                                 //variable args
                                 _gs_slot_ok();
                             } else {
-                                printf("Unexpected OK %s %i %i\n", gs.slot->cmd->body, gs.slot->params, gs.slot->has_params);
+                                ERROR("Unexpected OK %s %i %i", gs.slot->cmd->body, gs.slot->params, gs.slot->has_params);
                             }
                         }
                     } else if (_gs_check_error()) {
                         _gs_slot_error();
                     } else if (gs.slot->cmd->response_type == GS_RES_NO) {
                         //the command behaves differently
-                        printf("filling slot params for GS_RES_NO\n");
+                        DEBUG0("filling slot params for GS_RES_NO");
                         _gs_slot_params(gs.slot->cmd);
                     } else {
                         if (gs.slot->cmd->id == GS_CMD_CMGL) {
                             //it's a line of text, read the sms
                             if (gs.skipsms) {
-                                printf("Skip sms\n");
+                                DEBUG0("Skip sms");
                             } else {
-                                printf("reading sms %i\n", gs.bytes);
+                                DEBUG0("reading sms %i", gs.bytes);
                                 memcpy(gs.sms[gs.cursms].txt, gs.buffer, MIN(gs.bytes - 2, MAX_SMS_TXT_LEN));
                                 gs.sms[gs.cursms].txtlen = MIN(gs.bytes - 2, MAX_SMS_TXT_LEN);
                             }
                         } else {
-                            printf("Unexpected line\n");
+                            ERROR("Unexpected line");
                         }
                     }
                 }
@@ -1029,14 +1018,14 @@ void _gs_loop(void* args)
                 if (cmd) {
                     //we have a command
                     if (cmd->urc & GS_CMD_URC) {
-                        printf("Handling urc %s out of slot\n", cmd->body);
+                        DEBUG0("Handling urc %s out of slot", cmd->body);
                         _gs_handle_urc(cmd);
                     } else {
-                        printf("Don't know what to do with %s\n", cmd->body);
+                        ERROR("Don't know what to do with %s", cmd->body);
                     }
                 } else {
                     // we have no command
-                    printf("Unknown line out of slot\n");
+                    ERROR("Unknown line out of slot");
                 }
             }
         } else {
@@ -2229,34 +2218,34 @@ C_NATIVE(_g350_socket_select)
         }
         tobj = PSEQUENCE_OBJECTS(rlist)[i];
         sock = PSMALLINT_VALUE(tobj);
-        printf("S0 %i\n", sock);
+        DEBUG0("S0 %i", sock);
         if (sock >= 0 && sock < MAX_SOCKS) {
             GSocket* ssock = _gs_socket_get(sock); //get socket again, can be closed by URC
             if (!ssock) {
                 //consider it not ready
-                printf("S1\n");
+                DEBUG0("S1");
                 rlready[i]=0;
             } else {
                 GSSlot* slot = _gs_acquire_slot(GS_CMD_USORD, ssock->rxbuf, MAX_SOCK_HEX_RXBUF, GS_TIMEOUT * 10, 1);
                 _gs_send_at(GS_CMD_USORD, "=i,i", sock, 0);
                 _gs_wait_for_slot();
                 if (slot->err) {
-                    printf("S2\n");
+                    DEBUG0("S2");
                     rlready[i]=0; //consider it not ready
                 } else {
                     int flags, trec = 0;
                     if (_gs_parse_command_arguments(slot->resp, slot->eresp, "ii", &flags, &trec) == 2) {
                         if (trec) {
-                            printf("S3\n");
+                            DEBUG0("S3");
                             rlready[i]=1; //consider it ready
                             _gs_release_slot(slot);
                             break;
                         } else {
-                            printf("S4\n");
+                            DEBUG0("S4");
                             rlready[i] = 0; //consider it not ready
                         }
                     } else {
-                        printf("S5\n");
+                        DEBUG0("S5");
                         rlready[i] = 0; //consider it not ready
                     }
                 }
@@ -2571,7 +2560,7 @@ int _gs_sms_set_scsa(uint8_t* scsa, int scsalen)
 C_NATIVE(_new_check_network)
 {
     NATIVE_UNWARN();
-    printf("_new_check_network 1\n");
+    DEBUG0("_new_check_network 1");
 
     GSSlot* slot;
     int p0, p1, p2;
@@ -2579,18 +2568,18 @@ C_NATIVE(_new_check_network)
 
     PTUPLE_SET_ITEM(tpl, 0, PSMALLINT_NEW(-1));
     PTUPLE_SET_ITEM(tpl, 1 ,PSMALLINT_NEW(-1));
-    printf("_new_check_network 2\n");
+    DEBUG0("_new_check_network 2");
     slot = _gs_acquire_slot(GS_CMD_CREG, NULL, 64, GS_TIMEOUT * 5, 1);
     _gs_send_at(GS_CMD_CREG, "?");
     _gs_wait_for_slot();
-    printf("_new_check_network 3\n");
+    DEBUG0("_new_check_network 3");
     if (_gs_parse_command_arguments(slot->resp, slot->eresp, "ii", &p0, &p1) != 2) {
         _gs_release_slot(slot);
         *res = tpl;
         return ERR_OK;
     }
     _gs_release_slot(slot);
-    printf("_new_check_network 4\n");
+    DEBUG0("_new_check_network 4");
     PTUPLE_SET_ITEM(tpl,0,PSMALLINT_NEW(p0));
     PTUPLE_SET_ITEM(tpl,1,PSMALLINT_NEW(p1));
     *res = tpl;
