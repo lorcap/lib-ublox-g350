@@ -57,25 +57,32 @@ def init(serial,dtr,rts,poweron,reset):
     __builtins__.__default_net["ssl"] = __module__
     __builtins__.__default_net["sock"][0] = __module__ #AF_INET
 
-@c_native("_g350_init",["csrc/g350.c"])
+@c_native("_g350_startup",["csrc/g350_ifc.c"])
+def startup():
+    pass
+
+@c_native("_g350_shutdown",["csrc/g350_ifc.c"])
+def shutdown():
+    pass
+
+@c_native("_g350_init",["csrc/g350_ifc.c"])
 def _init(serial,dtr,rst,poweron,reset,exc):
     pass
 
-
-@c_native("_g350_attach",["csrc/g350.c"])
+@c_native("_g350_attach",["csrc/g350_ifc.c"])
 def attach(apn,username,password,authmode,timeout):
     pass
 
-@c_native("_g350_detach",["csrc/g350.c"])
+@c_native("_g350_detach",["csrc/g350_ifc.c"])
 def detach():
     pass
 
 
-@c_native("_g350_network_info",["csrc/g350.c"])
+@c_native("_g350_network_info",["csrc/g350_ifc.c"])
 def network_info():
     pass
 
-@c_native("_g350_mobile_info",["csrc/g350.c"])
+@c_native("_g350_mobile_info",["csrc/g350_ifc.c"])
 def mobile_info():
     pass
 
@@ -83,15 +90,15 @@ def mobile_info():
 def check_network():
     pass
 
-@c_native("_g350_link_info",["csrc/g350.c"])
+@c_native("_g350_link_info",["csrc/g350_ifc.c"])
 def link_info():
     pass
 
-@c_native("_g350_operators",["csrc/g350.c"])
+@c_native("_g350_operators",["csrc/g350_ifc.c"])
 def operators():
     pass
 
-@c_native("_g350_set_operator",["csrc/g350.c"])
+@c_native("_g350_set_operator",["csrc/g350_ifc.c"])
 def set_operator(opname):
     pass
 
@@ -105,7 +112,7 @@ def last_error():
     """
     pass
 
-@native_c("_g350_rtc",["csrc/g350.c"])
+@native_c("_g350_rtc",["csrc/g350_ifc.c"])
 def rtc():
     """
     
@@ -126,34 +133,34 @@ def rtc():
     """
     pass
 
-@c_native("_g350_rssi",["csrc/g350.c"])
+@c_native("_g350_rssi",["csrc/g350_ifc.c"])
 def rssi():
     pass
 
-@native_c("_g350_resolve",["csrc/*"])
+@native_c("_g350_resolve",["csrc/g350_ifc.c"])
 def gethostbyname(hostname):
     pass
 
 
-@native_c("_g350_socket_create",["csrc/*"])
+@native_c("_g350_socket_create",["csrc/g350.c"])
 def socket(family,type,proto):
     pass
 
-@native_c("_g350_socket_setsockopt",["csrc/*"])
+@native_c("_g350_socket_setsockopt",["csrc/g350.c"])
 def setsockopt(sock,level,optname,value):
     pass
 
 
-@native_c("_g350_socket_close",["csrc/*"])
+@native_c("_g350_socket_close",["csrc/g350.c"])
 def close(sock):
     pass
 
 
-@native_c("_g350_socket_sendto",["csrc/*"])
+@native_c("_g350_socket_sendto",["csrc/g350.c"])
 def sendto(sock,buf,addr,flags=0):
     pass
 
-@native_c("_g350_socket_send",["csrc/*"])
+@native_c("_g350_socket_send",["csrc/g350.c"])
 def send(sock,buf,flags=0):
     pass
 
@@ -161,12 +168,12 @@ def sendall(sock,buf,flags=0):
     send(sock,buf,flags)
 
 
-@native_c("_g350_socket_recv_into",["csrc/*"])
+@native_c("_g350_socket_recv_into",["csrc/g350.c"])
 def recv_into(sock,buf,bufsize,flags=0,ofs=0):
     pass
 
 
-@native_c("_g350_socket_recvfrom_into",["csrc/*"])
+@native_c("_g350_socket_recvfrom_into",["csrc/g350.c"])
 def recvfrom_into(sock,buf,bufsize,flags=0):
     pass
 
@@ -179,15 +186,15 @@ def listen(sock,maxlog=2):
 def accept(sock):
     raise UnsupportedError
 
-@native_c("_g350_socket_connect",["csrc/*"])
+@native_c("_g350_socket_connect",["csrc/g350.c"])
 def connect(sock,addr):
     pass
 
-@native_c("_g350_socket_select",[])
+@native_c("_g350_socket_select",["csrc/g350.c"])
 def select(rlist,wist,xlist,timeout):
     pass
 
-@native_c("_g350_secure_socket",[],[])
+@native_c("_g350_secure_socket",["csrc/g350.c"])
 def secure_socket(family, type, proto, ctx):
     pass
 
