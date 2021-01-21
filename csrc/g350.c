@@ -523,7 +523,7 @@ void _gs_send_at(int cmd_id, const char* fmt, ...)
             break;
         case 's':
             sparam = va_arg(vl, uint8_t*);
-            iparam_len = va_arg(vl, int32_t*);
+            iparam_len = va_arg(vl, int32_t);
             vhalSerialWrite(gs.serial, sparam, iparam_len);
             DEBUG0("s: %*s", iparam_len, sparam);
             break;
