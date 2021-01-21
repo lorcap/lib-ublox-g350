@@ -170,7 +170,6 @@ def recv_into(sock,buf,bufsize,flags=0,ofs=0):
 def recvfrom_into(sock,buf,bufsize,flags=0):
     pass
 
-
 def bind(sock,addr):
     raise UnsupportedError
 

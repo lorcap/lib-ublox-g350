@@ -56,6 +56,7 @@ C_NATIVE(_g350_init)
 C_NATIVE(_g350_startup)
 {
     NATIVE_UNWARN();
+    DEBUG0("enter");
     int32_t err = ERR_OK;
     *res = MAKE_NONE();
 
@@ -65,7 +66,7 @@ C_NATIVE(_g350_startup)
     if (_gs_stop() != 0)
         err = ERR_HARDWARE_INITIALIZATION_ERROR;
     else
-    if (!_gs_poweron()) {
+    if (_gs_poweron() != 0) {
         err = ERR_HARDWARE_INITIALIZATION_ERROR;
     }
     else
@@ -74,7 +75,6 @@ C_NATIVE(_g350_startup)
     else {
         if (gs.thread==NULL){
             //let's start modem thread (if not already started)
-            DEBUG0("Starting modem thread with size %i\n", VM_DEFAULT_THREAD_SIZE);
             gs.thread = vosThCreate(VM_DEFAULT_THREAD_SIZE, VOS_PRIO_NORMAL, _gs_loop, NULL, NULL);
             vosThResume(gs.thread);
             vosThSleep(TIME_U(1000, MILLIS)); // let modem thread have a chance to start
@@ -92,6 +92,7 @@ C_NATIVE(_g350_startup)
 
     vosSemSignal(gs.slotlock);
     ACQUIRE_GIL();
+    DEBUG0("exit:%d", err);
     return err;
 }
 
@@ -468,6 +469,7 @@ C_NATIVE(_g350_resolve)
 C_NATIVE(_g350_rtc)
 {
     C_NATIVE_UNWARN();
+    DEBUG0("enter");
     int err = ERR_OK;
     uint8_t time[20];
     *res = MAKE_NONE();
@@ -495,6 +497,7 @@ C_NATIVE(_g350_rtc)
         PTUPLE_SET_ITEM(tpl, 6, PSMALLINT_NEW(tz));
         *res = tpl;
     }
+    DEBUG0("exit:%d", err);
     return err;
 }
 

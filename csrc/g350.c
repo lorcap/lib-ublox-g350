@@ -71,10 +71,8 @@ void _gs_socket_pending(int id);
  */
 void _gs_init(void)
 {
-    int i;
     if (!gs.initialized) {
-        DEBUG0("Initializing GSM");
-        for (i = 0; i < MAX_SOCKS; i++) {
+        for (int i = 0; i < MAX_SOCKS; i++) {
             gs_sockets[i].lock = vosSemCreate(1);
             gs_sockets[i].rx = vosSemCreate(0);
         }
@@ -97,22 +95,27 @@ void _gs_init(void)
  */
 int _gs_start(void)
 {
+    int err = GS_ERR_OK;
     int i;
     if (!gs.talking) {
         gs.talking = 1;
         for (i = 30; i > 0; --i) {
-            DEBUG0("waiting modem loop %i",i);
             if (gs.running)
                 break;
             vosThSleep(TIME_U(100, MILLIS));
         }
-        if (i == 0)
-            return GS_ERR_TIMEOUT;
+        if (i == 0) {
+            err = GS_ERR_TIMEOUT;
+            goto exit;
+        }
     }
     if (!gs.running)
-        return GS_ERR_INVALID;
-    DEBUG0("started.");
-    return GS_ERR_OK;
+        err = GS_ERR_INVALID;
+
+exit:
+    if (err)
+        DEBUG0("exit: %d", err);
+    return err;
 }
 
 /**
@@ -122,22 +125,27 @@ int _gs_start(void)
  */
 int _gs_stop(void)
 {
+    int err = GS_ERR_OK;
     int i;
     if (gs.talking) {
         gs.talking = 0;
         for (i = 50; i > 0; --i) {
-            DEBUG0("waiting modem loop %i",i);
             if (!gs.running)
                 break;
             vosThSleep(TIME_U(100, MILLIS));
         }
-        if (i == 0)
-            return GS_ERR_TIMEOUT;
+        if (i == 0) {
+            err = GS_ERR_TIMEOUT;
+            goto exit;
+        }
     }
     if (gs.running)
-        return GS_ERR_INVALID;
-    DEBUG0("stopped.");
-    return GS_ERR_OK;
+        err = GS_ERR_INVALID;
+
+exit:
+    if (err)
+        DEBUG0("exit:%d", err);
+    return err;
 }
 
 /**
@@ -159,14 +167,18 @@ void _gs_done(void)
  */
 int _gs_poweron(void)
 {
+    int err = GS_ERR_OK;
+
     vhalPinSetMode(gs.poweron, PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.poweron, 1);
 
     vhalPinSetMode(gs.reset, PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.reset, 1);
 
-    if (vhalSerialInit(gs.serial, 115200, SERIAL_CFG(SERIAL_PARITY_NONE,SERIAL_STOP_ONE, SERIAL_BITS_8, 0, 0), gs.rx, gs.tx) != 0)
-        return 1;
+    if (vhalSerialInit(gs.serial, 115200, SERIAL_CFG(SERIAL_PARITY_NONE,SERIAL_STOP_ONE, SERIAL_BITS_8, 0, 0), gs.rx, gs.tx) != 0) {
+        err = GS_ERR_INVALID;
+        goto exit;
+    }
 
     vhalPinSetMode(gs.dtr, PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.dtr, 0);
@@ -174,7 +186,10 @@ int _gs_poweron(void)
     vhalPinSetMode(gs.rts, PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.rts, 0);
 
-    return 0;
+exit:
+    if (err)
+        DEBUG0("exit:%d", err);
+    return err;
 }
 
 /**
@@ -210,13 +225,28 @@ int _gs_readline(int timeout)
             vhalSerialRead(gs.serial, buf, 1);
         }
         gs.bytes++;
-        //        DEBUG0("->%i",gs.bytes);
         if (*buf++ == '\n')
             break;
     }
-    //terminate for debugging!
-    *buf = 0;
-    DEBUG0("rl: %s", gs.buffer);
+
+#   if defined(ZERYNTH_DEBUG)
+    {
+        *buf++ = 0;
+        char dbg[buf - gs.buffer];
+        char* d = dbg;
+
+        for (buf = gs.buffer; *buf != '\0'; ++buf) {
+            switch (*buf) {
+                case '\r': *d++ = '\\'; *d++ = 'r'; break;
+                case '\n': *d++ = '\\'; *d++ = 'n'; break;
+                default  : *d++ = *buf;
+            }
+        }
+        *d = '\0';
+
+        DEBUG0("%s", dbg);
+    }
+#   endif
     return gs.bytes;
 }
 
@@ -261,10 +291,11 @@ int _gs_check_ok(void)
 int _gs_wait_for_ok(int timeout)
 {
     while (_gs_readline(timeout) >= 0) {
-        if(_gs_check_ok()){
+        if (_gs_check_ok()) {
             return 1;
         }
     }
+    DEBUG0("timed out");
     return 0;
 }
 
@@ -474,13 +505,12 @@ void _gs_send_at(int cmd_id, const char* fmt, ...)
     int32_t iparam;
     int32_t iparam_len;
     va_list vl;
+    DEBUG0("AT%s%s", cmd->body, fmt);
     va_start(vl, fmt);
 
     vosSemWait(gs.sendlock);
     vhalSerialWrite(gs.serial, "AT", 2);
-    DEBUG0("->: AT");
     vhalSerialWrite(gs.serial, cmd->body, cmd->len);
-    DEBUG0("->: %s", cmd->body);
     while (*fmt) {
         switch (*fmt) {
         case 'i':
@@ -489,20 +519,16 @@ void _gs_send_at(int cmd_id, const char* fmt, ...)
             iparam_len = modp_itoa10(iparam, _strbuf);
             vhalSerialWrite(gs.serial, _strbuf, iparam_len);
             _strbuf[iparam_len] = 0;
-            DEBUG0("->: %s", _strbuf);
+            DEBUG0("i: %s", _strbuf);
             break;
         case 's':
             sparam = va_arg(vl, uint8_t*);
             iparam_len = va_arg(vl, int32_t*);
             vhalSerialWrite(gs.serial, sparam, iparam_len);
-#if ZERYNTH_DEBUG >= 0
-            for (iparam = 0; iparam < iparam_len; iparam++)
-                DEBUG0("->: %c", sparam[iparam]);
-#endif
+            DEBUG0("s: %*s", iparam_len, sparam);
             break;
         default:
             vhalSerialWrite(gs.serial, fmt, 1);
-            DEBUG0("->: %c", *fmt);
         }
         fmt++;
     }
@@ -801,7 +827,6 @@ void _gs_release_slot(GSSlot* slot)
  */
 void _gs_slot_ok(void)
 {
-    DEBUG0("ok slot %s", gs.slot->cmd->body);
     gs.slot->err = 0;
     gs.slot = NULL;
     vosSemSignal(gs.slotdone);
@@ -812,7 +837,6 @@ void _gs_slot_ok(void)
  */
 void _gs_slot_error(void)
 {
-    DEBUG0("error slot %s", gs.slot->cmd->body);
     gs.slot->err = 2;
     gs.slot = NULL;
     vosSemSignal(gs.slotdone);
@@ -823,7 +847,7 @@ void _gs_slot_error(void)
  */
 void _gs_slot_timeout(void)
 {
-    DEBUG0("timeout slot %s", gs.slot->cmd->body);
+    DEBUG0("slot timeout (%s)", gs.slot->cmd->body);
     gs.slot->err = GS_ERR_TIMEOUT;
     gs.slot = NULL;
     vosSemSignal(gs.slotdone);
@@ -890,7 +914,6 @@ void _gs_loop(void* args)
 {
     (void)args;
     GSCmd* cmd;
-    DEBUG0("_gs_loop started (Thread %d)", vosThGetId(vosThCurrent()));
     while (gs.initialized) {
         // do nothing if serial is not active
         if (!gs.talking) {
@@ -899,11 +922,12 @@ void _gs_loop(void* args)
             continue;
         }
         gs.running = 1;
-        // DEBUG0("looping");
         if (gs.mode != GS_MODE_PROMPT) {
             if (_gs_readline(100) <= 3) {
-                if (
-                    gs.bytes >= 1 && gs.buffer[0] == '>' && gs.slot && (gs.slot->cmd->id == GS_CMD_USECMNG || gs.slot->cmd->id == GS_CMD_CMGS)) {
+                if (gs.bytes >= 1
+                &&  gs.buffer[0] == '>'
+                &&  gs.slot
+                &&  (gs.slot->cmd->id == GS_CMD_USECMNG || gs.slot->cmd->id == GS_CMD_CMGS)) {
                     //only enter in prompt mode if the current slot is for USECMNG/CMGS to avoid locks
                     DEBUG0("GOT PROMPT!");
                     gs.mode = GS_MODE_PROMPT;
@@ -913,7 +937,6 @@ void _gs_loop(void* args)
                 if (gs.slot) {
                     if (gs.slot->timeout && (vosMillis() - gs.slot->stime) > gs.slot->timeout) {
                         //slot timed out
-                        DEBUG0("slot timeout");
                         _gs_slot_timeout();
                     }
                 }
@@ -927,28 +950,28 @@ void _gs_loop(void* args)
                     if (cmd == gs.slot->cmd) {
                         //we parsed the response to slot
                         if (gs.slot->has_params) {
-                            DEBUG0("filling slot params for %s", cmd->body);
+                            //DEBUG0("filling slot params for %s", cmd->body);
                             _gs_slot_params(cmd);
                             if (cmd->id == GS_CMD_CMGL) {
                                 int idx;
                                 uint8_t *sta, *oa, *alpha, *scts;
                                 int stalen, oalen, alphalen, sctslen;
 
-                                DEBUG0("CMGL");
+                                //DEBUG0("CMGL");
                                 //we are reading sms list
                                 if (_gs_parse_command_arguments(gs.slot->resp, gs.slot->eresp, "issss", &idx, &sta, &stalen, &oa, &oalen, &alpha, &alphalen, &scts, &sctslen) == 5) {
-                                    DEBUG0("CMGL parsed");
+                                    //DEBUG0("CMGL parsed");
                                     if (memcmp(sta + stalen - 5, "READ", 4) != 0) {
                                         //it's not a read or unread sms
                                         gs.skipsms = 1;
-                                        DEBUG0("CMGL skip 1");
+                                        //DEBUG0("CMGL skip 1");
 
                                     } else {
                                         if (gs.cursms >= gs.maxsms - 1 || idx < gs.offsetsms) {
                                             gs.skipsms = 1;
-                                            DEBUG0("CMGL skip 2");
+                                            //DEBUG0("CMGL skip 2");
                                         } else {
-                                            DEBUG0("CMGL read");
+                                            //DEBUG0("CMGL read");
                                             gs.skipsms = 0;
                                             gs.cursms++;
                                             //got a new sms
@@ -975,7 +998,7 @@ void _gs_loop(void* args)
                         }
                     } else if (cmd->urc & GS_CMD_URC) {
                         //we parsed a urc
-                        DEBUG0("Handling urc %s in a slot", cmd->body);
+                        DEBUG0("URC: %s", cmd->body);
                         _gs_handle_urc(cmd);
                     }
                 } else {
@@ -989,27 +1012,25 @@ void _gs_loop(void* args)
                                 //variable args
                                 _gs_slot_ok();
                             } else {
-                                ERROR("Unexpected OK %s %i %i", gs.slot->cmd->body, gs.slot->params, gs.slot->has_params);
+                                ERROR("Unexpected OK: %s %i %i", gs.slot->cmd->body, gs.slot->params, gs.slot->has_params);
                             }
                         }
                     } else if (_gs_check_error()) {
                         _gs_slot_error();
                     } else if (gs.slot->cmd->response_type == GS_RES_NO) {
                         //the command behaves differently
-                        DEBUG0("filling slot params for GS_RES_NO");
                         _gs_slot_params(gs.slot->cmd);
                     } else {
                         if (gs.slot->cmd->id == GS_CMD_CMGL) {
                             //it's a line of text, read the sms
                             if (gs.skipsms) {
-                                DEBUG0("Skip sms");
                             } else {
                                 DEBUG0("reading sms %i", gs.bytes);
                                 memcpy(gs.sms[gs.cursms].txt, gs.buffer, MIN(gs.bytes - 2, MAX_SMS_TXT_LEN));
                                 gs.sms[gs.cursms].txtlen = MIN(gs.bytes - 2, MAX_SMS_TXT_LEN);
                             }
                         } else {
-                            ERROR("Unexpected line");
+                            ERROR("Unknown line in slot");
                         }
                     }
                 }
@@ -1018,7 +1039,7 @@ void _gs_loop(void* args)
                 if (cmd) {
                     //we have a command
                     if (cmd->urc & GS_CMD_URC) {
-                        DEBUG0("Handling urc %s out of slot", cmd->body);
+                        DEBUG0("URC: %s", cmd->body);
                         _gs_handle_urc(cmd);
                     } else {
                         ERROR("Don't know what to do with %s", cmd->body);
@@ -1040,7 +1061,6 @@ void _gs_loop(void* args)
                     break;
             }
             gs.mode = GS_MODE_NORMAL;
-
         }
     }
 }
@@ -1464,6 +1484,7 @@ int _gs_get_rtc(uint8_t* time)
             res = 0;
         } else {
             memcpy(time, s0 + 1, 20);
+            DEBUG0("%20s", time);
         }
     }
     _gs_release_slot(slot);
@@ -1498,6 +1519,7 @@ int _gs_iccid(uint8_t* iccid)
     int l0;
     uint8_t* s0 = NULL;
     GSSlot* slot;
+
     slot = _gs_acquire_slot(GS_CMD_CCID, NULL, 64, GS_TIMEOUT * 10, 1);
     _gs_send_at(GS_CMD_CCID, "");
     _gs_wait_for_slot();
