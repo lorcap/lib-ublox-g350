@@ -546,57 +546,62 @@ void _gs_send_at(int cmd_id, const char* fmt, ...)
  */
 int _gs_config0(void)
 {
-    //clean serial
-
     //disable echo
-    vhalSerialWrite(gs.serial, "ATE0\r\n", 6);
+    _gs_send_at(GS_CMD_ECHO, "i", 0);
     if (!_gs_wait_for_ok(500))
-        return 0;
+        goto fail;
 
-    vhalSerialWrite(gs.serial, "AT+GMR\r\n", 8);
+    _gs_send_at(GS_CMD_GMR, "");
     if (!_gs_wait_for_ok(500))
-        return 0;
+        goto fail;
 
     //full error messages
     _gs_send_at(GS_CMD_CMEE, "=i", 2);
     if (!_gs_wait_for_ok(500))
-        return 0;
+        goto fail;
 
     _gs_send_at(GS_CMD_CMER,"=i,i,i,i,i",2,0,0,2,1);
-    if(!_gs_wait_for_ok(500)) return 0;
+    if (!_gs_wait_for_ok(500))
+        goto fail;
 
     _gs_send_at(GS_CMD_UDCONF,"=i,i",1,1); //enable HEX mode
-    if(!_gs_wait_for_ok(1000)) return 0;
+    if (!_gs_wait_for_ok(1000))
+        goto fail;
 
     //enable urc about network status
     _gs_send_at(GS_CMD_CREG, "=i", 2);
     if (!_gs_wait_for_ok(500))
-        return 0;
+        goto fail;
+
     _gs_send_at(GS_CMD_CGREG, "=i", 2);
     if (!_gs_wait_for_ok(500))
-        return 0;
+        goto fail;
 
     //set sms format
-    vhalSerialWrite(gs.serial, "AT+CMGF=1\r\n", 11);
+    _gs_send_at(GS_CMD_CMGF, "=i", 1);
     if (!_gs_wait_for_ok(500))
-        return 0;
+        goto fail;
 
     //set text encoding
-    vhalSerialWrite(gs.serial, "AT+CSCS=\"IRA\"\r\n", 15);
+    _gs_send_at(GS_CMD_CSCS, "=s", "\"IRA\"", sizeof("\"IRA\"")-1);
     if (!_gs_wait_for_ok(500))
-        return 0;
+        goto fail;
 
     //get scsa
-    vhalSerialWrite(gs.serial, "AT+CSCA?\r\n", 10);
+    _gs_send_at(GS_CMD_CSCA, "?");
     if (!_gs_wait_for_ok(500))
-        return 0;
+        goto fail;
 
     //setup sms
-    vhalSerialWrite(gs.serial, "AT+CNMI=2,1,0,0,0\r\n", 19);
+    _gs_send_at(GS_CMD_CNMI, "=i,i,i,i,i", 2, 1, 0, 0, 0);
     if (!_gs_wait_for_ok(500))
-        return 0;
+        goto fail;
 
     return 1;
+
+fail:
+    DEBUG0("failed");
+    return 0;
 }
 
 /**

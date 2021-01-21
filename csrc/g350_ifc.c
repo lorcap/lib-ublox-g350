@@ -35,7 +35,6 @@ C_NATIVE(_g350_init)
 
     *res = MAKE_NONE();
 
-
     RELEASE_GIL();
     _gs_init();
     gs.serial = serial&0xff;
