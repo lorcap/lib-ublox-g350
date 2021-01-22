@@ -97,6 +97,9 @@ def link_info():
 def operators():
     pass
 
+def set_rat(rat, bands=[]):
+    pass
+
 @c_native("_g350_set_operator",["csrc/g350_ifc.c"])
 def set_operator(opname):
     pass
