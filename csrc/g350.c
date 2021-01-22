@@ -1540,44 +1540,6 @@ int _gs_iccid(uint8_t* iccid)
     return res;
 }
 
-/**
- * @brief strings for network types
- */
-static const uint8_t *_urats[] = {
-    "GSM",
-    "UMTS",
-    "LTE"
-};
-
-/**
- * @brief Get current Radio Access Technology
- */
-int _gs_get_rat(void)
-{
-    int p0;
-    GSSlot* slot;
-    RELEASE_GIL();
-
-    slot = _gs_acquire_slot(GS_CMD_URAT, NULL, 32, GS_TIMEOUT * 10, 1);
-    _gs_send_at(GS_CMD_URAT, "?");
-    _gs_wait_for_slot();
-    p0 = 0;
-    //+URAT is not always supported in G3 family, default to GSM in case of error
-    if (!slot->err) {
-        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "i", &p0) == 1) {
-            if (p0 == 2)
-                p0 = 1;
-            else if (p0 >= 3)
-                p0 = 2;
-        }
-    }
-    memcpy(gs.rat, &_urats[p0], (p0 == 1) ? 4 : 3);
-
-    ACQUIRE_GIL();
-    _gs_release_slot(slot);
-    return 0;
-}
-
 int _gs_cell_info(int* mcc, int* mnc)
 {
     int p0, l0, l1, l2, l3, l4;

@@ -114,7 +114,6 @@ typedef struct _gsm_status{
     VThread thread;
     uint8_t errmsg[MAX_ERR_LEN];
     uint8_t buffer[MAX_CMD];
-    uint8_t rat[5];
     uint8_t lac[MAX_LAC_LEN];
     uint8_t ci[MAX_CI_LEN];
     uint8_t bsic[MAX_BSIC_LEN];
@@ -288,7 +287,6 @@ int _gs_set_gprs_status_from_cgreg(uint8_t* buf, uint8_t* ebuf, int from_urc);
 int _gs_list_operators(void);
 int _gs_set_operator(uint8_t *opname, uint32_t oplen);
 int _gs_check_network(void);
-int _gs_get_rat(void);
 int _gs_cell_info(int* mcc, int* mnc);
 int _gs_imei(uint8_t* imei);
 int _gs_iccid(uint8_t* iccid);

@@ -77,7 +77,6 @@ def attach(apn,username,password,authmode,timeout):
 def detach():
     pass
 
-
 @c_native("_g350_network_info",["csrc/g350_ifc.c"])
 def network_info():
     pass

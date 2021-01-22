@@ -333,7 +333,7 @@ C_NATIVE(_g350_rssi)
 }
 
 /**
- * @brief _g350_network_info retrieves network information through +URAT and *CGED
+ * @brief _g350_network_info retrieves network information through +CGED
  */
 C_NATIVE(_g350_network_info)
 {
@@ -342,11 +342,9 @@ C_NATIVE(_g350_network_info)
     PString* str = NULL;
     PTuple* tpl = ptuple_new(8, NULL);
 
-    _gs_get_rat();
-    str = pstring_new(strlen(gs.rat), gs.rat);
-    PTUPLE_SET_ITEM(tpl, 0, str);
-
     _gs_cell_info(&mcc, &mnc);
+
+    PTUPLE_SET_ITEM(tpl, 0, pstring_new(sizeof("GSM"), "GSM"));
     PTUPLE_SET_ITEM(tpl, 1, PSMALLINT_NEW(mcc));
     PTUPLE_SET_ITEM(tpl, 2, PSMALLINT_NEW(mnc));
     str = pstring_new(strlen(gs.bsic), gs.bsic);
