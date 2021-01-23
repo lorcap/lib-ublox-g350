@@ -416,9 +416,8 @@ uint8_t* _gs_parse_number(uint8_t* buf, uint8_t* ebuf, int32_t* result)
  * Parse from buf to ebuf according to the fmt string. The fmt can contain
  * only "i" and "s". "i" needs a pointer to an int as the corresponsing variadic argument
  * while "s" needs two arguments: a uint8_t** to store the pointer to the string and an int32_t* to store
- * the string length. Parameters in buf are delimited by delimiters in this pattern: ",\r\n". Strings are not copied,
- * buf is modified in place by null terminating each parameter at the rightmost delimiter, and a pointer to the string parameter
- * is returned.
+ * the string length. Parameters in buf are delimited by delimiters in this pattern: ",\r\n". Strings are not copied
+ * and a pointer to the string parameter is returned.
  *
  * @param[in]  buf   starting point
  * @param[in]  ebuf  ending point (not included)
@@ -430,24 +429,23 @@ uint8_t* _gs_parse_number(uint8_t* buf, uint8_t* ebuf, int32_t* result)
 int _gs_parse_command_arguments(uint8_t* buf, uint8_t* ebuf, const char* fmt, ...)
 {
     va_list vl;
-    va_start(vl, fmt);
     int32_t ret = 0;
     int32_t* iparam;
     uint8_t** sparam;
+    GSTimestamp* tparam;
     uint8_t* pms;
     uint8_t* pme = ebuf;
     int i;
+
+    va_start(vl, fmt);
     pms = buf;
-    while (buf < ebuf) {
-        buf = _gs_advance_to(buf, ebuf, ",\r\n");
-        if (!buf)
-            break;
-        pme = buf - 1;
-        //*buf=0;
+    while (buf < ebuf && *buf != '\r' && *buf != '\n') {
         switch (*fmt) {
         case 0:
             goto exit;
         case 'i':
+            buf = _gs_advance_to(buf, ebuf, ",\r\n");
+            pme = buf - 1;
             iparam = va_arg(vl, int32_t*);
             if (iparam)
                 *iparam = 0;
@@ -458,17 +456,22 @@ int _gs_parse_command_arguments(uint8_t* buf, uint8_t* ebuf, const char* fmt, ..
             ret++;
             break;
         case 'S': // remove quotes if present
-            if (*pms == '\"')
-                pms++;
-            if (*pme == '\"')
-                pme--;
+            if (*pms == '\"') {
+                ++pms;
+                buf = _gs_advance_to(pms, ebuf, "\"") + 1;
+                pme = buf - 2;
+                goto parse_string;
+            }
             // fall through
         case 's':
+            buf = _gs_advance_to(buf, ebuf, ",\r\n");
+            pme = buf - 1;
+parse_string:
             sparam = va_arg(vl, uint8_t**);
             iparam = va_arg(vl, int32_t*);
             if (sparam)
                 *sparam = pms;
-            //*buf=0; //end string
+            //*buf = '\0';
             if (iparam)
                 *iparam = (pme - pms) + 1; //store len
             ret++;
