@@ -73,6 +73,16 @@ typedef struct _gs_operator {
     uint8_t fmt_code[6];
 }GSOp;
 
+typedef struct _gs_timestamp {
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+    int16_t timezone;
+} GSTimestamp;
+
 typedef struct _gs_sms {
     uint8_t oaddr[MAX_SMS_OADDR_LEN];
     uint8_t ts[MAX_SMS_TS_LEN];

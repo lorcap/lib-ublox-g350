@@ -413,11 +413,12 @@ uint8_t* _gs_parse_number(uint8_t* buf, uint8_t* ebuf, int32_t* result)
 /**
  * @brief parse the arguments of a command response
  *
- * Parse from buf to ebuf according to the fmt string. The fmt can contain
- * only "i" and "s". "i" needs a pointer to an int as the corresponsing variadic argument
- * while "s" needs two arguments: a uint8_t** to store the pointer to the string and an int32_t* to store
- * the string length. Parameters in buf are delimited by delimiters in this pattern: ",\r\n". Strings are not copied
- * and a pointer to the string parameter is returned.
+ * Parse from buf to ebuf according to the fmt string. The fmt can contain:
+ * - `i`: needs a an int* as the corresponsing variadic argument
+ * - `s`: needs a uint8_t** to store the pointer to the string (not copied)
+ *        and an int32_t* to store the string length
+ * - `t`: needs a GSTimestamp*
+ * Parameters in buf are delimited by delimiters in this pattern: ",\r\n".
  *
  * @param[in]  buf   starting point
  * @param[in]  ebuf  ending point (not included)
@@ -474,6 +475,21 @@ parse_string:
             //*buf = '\0';
             if (iparam)
                 *iparam = (pme - pms) + 1; //store len
+            ret++;
+            break;
+        case 't': // "yy/MM/dd,hh:mm:ss+tz"
+            buf += sizeof("\"yy/MM/dd,hh:mm:ss+tz\"") - 1;
+            tparam = va_arg(vl, GSTimestamp*);
+            if (tparam) {
+                tparam->year     = (pms[ 1] - '0')*10 + (pms[ 2] - '0') + 2000;
+                tparam->month    = (pms[ 4] - '0')*10 + (pms[ 5] - '0');
+                tparam->day      = (pms[ 7] - '0')*10 + (pms[ 8] - '0');
+                tparam->hour     = (pms[10] - '0')*10 + (pms[11] - '0');
+                tparam->minute   = (pms[13] - '0')*10 + (pms[14] - '0');
+                tparam->second   = (pms[16] - '0')*10 + (pms[17] - '0');
+                tparam->timezone = (pms[19] - '0')*10 + (pms[20] - '0');
+                tparam->timezone*= (pms[18] == '-') ? -15 : 15;
+            }
             ret++;
             break;
         }
