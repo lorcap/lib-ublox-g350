@@ -468,30 +468,21 @@ C_NATIVE(_g350_rtc)
     C_NATIVE_UNWARN();
     DEBUG0("enter");
     int err = ERR_OK;
-    uint8_t time[20];
+    GSTimestamp ts = {0};
     *res = MAKE_NONE();
-    memset(time,0,20);
     RELEASE_GIL();
-    if (!_gs_get_rtc(time))
+    if (!_gs_get_rtc(&ts))
         err = ERR_RUNTIME_EXC;
     ACQUIRE_GIL();
     if (err == ERR_OK) {
         PTuple* tpl = ptuple_new(7, NULL);
-        int yy, MM, dd, hh, mm, ss, tz;
-        yy = 2000 + ((time[0] - '0') * 10 + (time[1] - '0'));
-        MM = (time[3] - '0') * 10 + (time[4] - '0');
-        dd = (time[6] - '0') * 10 + (time[7] - '0');
-        hh = (time[9] - '0') * 10 + (time[10] - '0');
-        mm = (time[12] - '0') * 10 + (time[13] - '0');
-        ss = (time[15] - '0') * 10 + (time[16] - '0');
-        tz = ((time[18] - '0') * 10 + (time[19] - '0')) * 15 * ((time[17] == '-') ? -1 : 1);
-        PTUPLE_SET_ITEM(tpl, 0, PSMALLINT_NEW(yy));
-        PTUPLE_SET_ITEM(tpl, 1, PSMALLINT_NEW(MM));
-        PTUPLE_SET_ITEM(tpl, 2, PSMALLINT_NEW(dd));
-        PTUPLE_SET_ITEM(tpl, 3, PSMALLINT_NEW(hh));
-        PTUPLE_SET_ITEM(tpl, 4, PSMALLINT_NEW(mm));
-        PTUPLE_SET_ITEM(tpl, 5, PSMALLINT_NEW(ss));
-        PTUPLE_SET_ITEM(tpl, 6, PSMALLINT_NEW(tz));
+        PTUPLE_SET_ITEM(tpl, 0, PSMALLINT_NEW(ts.year    ));
+        PTUPLE_SET_ITEM(tpl, 1, PSMALLINT_NEW(ts.month   ));
+        PTUPLE_SET_ITEM(tpl, 2, PSMALLINT_NEW(ts.day     ));
+        PTUPLE_SET_ITEM(tpl, 3, PSMALLINT_NEW(ts.hour    ));
+        PTUPLE_SET_ITEM(tpl, 4, PSMALLINT_NEW(ts.minute  ));
+        PTUPLE_SET_ITEM(tpl, 5, PSMALLINT_NEW(ts.second  ));
+        PTUPLE_SET_ITEM(tpl, 6, PSMALLINT_NEW(ts.timezone));
         *res = tpl;
     }
     DEBUG0("exit:%d", err);

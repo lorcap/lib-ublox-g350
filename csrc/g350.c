@@ -1552,22 +1552,18 @@ int _gs_query_psd(int query, uint8_t** param, uint32_t* param_len)
     return p1;
 }
 
-int _gs_get_rtc(uint8_t* time)
+int _gs_get_rtc(GSTimestamp* ts)
 {
     GSSlot* slot;
-    uint8_t* s0;
-    int l0;
     int res;
     slot = _gs_acquire_slot(GS_CMD_CCLK, NULL, 32, GS_TIMEOUT, 1);
     _gs_send_at(GS_CMD_CCLK, "?");
     _gs_wait_for_slot();
     res = !slot->err;
     if (res) {
-        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "s", &s0, &l0) != 1) {
+        if (_gs_parse_command_arguments(slot->resp, slot->eresp, "t", ts) != 1) {
+            memset(ts, 0, sizeof(*ts));
             res = 0;
-        } else {
-            memcpy(time, s0 + 1, 20);
-            DEBUG0("%20s", time);
         }
     }
     _gs_release_slot(slot);
