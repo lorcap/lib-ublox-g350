@@ -601,6 +601,10 @@ int _gs_config0(void)
     if (!_gs_wait_for_ok(500))
         goto fail;
 
+    _gs_send_at(GS_CMD_CSDH, "=i", 1);
+    if (!_gs_wait_for_ok(500))
+        goto fail;
+
     //set text encoding
     _gs_send_at(GS_CMD_CSCS, "=s", "\"IRA\"", sizeof("\"IRA\"")-1);
     if (!_gs_wait_for_ok(500))
@@ -1036,42 +1040,39 @@ void _gs_loop(void* args)
                             //DEBUG0("filling slot params for %s", cmd->body);
                             _gs_slot_params(cmd);
                             if (cmd->id == GS_CMD_CMGL) {
-                                int idx;
-                                uint8_t *sta, *oa, *alpha, *scts;
-                                int stalen, oalen, alphalen, sctslen;
+                                int      index;     // storage position
+                                uint8_t* stat;      // status of message in memory
+                                int      stat_len;
+                                uint8_t* oa;        // originator address
+                                int      oa_len;
+                                GSTimestamp scts;   // service center time stamp
+                                int      length;    // text's number of characters
 
-                                //DEBUG0("CMGL");
                                 //we are reading sms list
-                                if (_gs_parse_command_arguments(gs.slot->resp, gs.slot->eresp, "issss", &idx, &sta, &stalen, &oa, &oalen, &alpha, &alphalen, &scts, &sctslen) == 5) {
-                                    //DEBUG0("CMGL parsed");
-                                    if (memcmp(sta + stalen - 5, "READ", 4) != 0) {
+                                if (_gs_parse_command_arguments(gs.slot->resp, gs.slot->eresp, "iSSstii",
+                                                                &index,
+                                                                &stat, &stat_len,
+                                                                &oa, &oa_len,
+                                                                NULL, NULL, // alpha
+                                                                &scts,
+                                                                NULL, // tooa
+                                                                &length) == 7) {
+                                    if (memcmp(stat + stat_len - 4, "READ", 4) != 0) {
                                         //it's not a read or unread sms
                                         gs.skipsms = 1;
-                                        //DEBUG0("CMGL skip 1");
-
                                     } else {
-                                        if (gs.cursms >= gs.maxsms - 1 || idx < gs.offsetsms) {
+                                        if (gs.cursms >= gs.maxsms - 1 || index < gs.offsetsms) {
                                             gs.skipsms = 1;
-                                            //DEBUG0("CMGL skip 2");
                                         } else {
-                                            //DEBUG0("CMGL read");
-                                            gs.skipsms = 0;
-                                            gs.cursms++;
                                             //got a new sms
-                                            //copy address
-                                            memcpy(gs.sms[gs.cursms].oaddr, oa + 1, MIN(oalen - 2, MAX_SMS_OADDR_LEN));
-                                            gs.sms[gs.cursms].oaddrlen = MIN(oalen - 2, MAX_SMS_OADDR_LEN);
-                                            //copy time
-                                            memcpy(gs.sms[gs.cursms].ts, scts + 1, MIN(sctslen - 2, MAX_SMS_TS_LEN));
-                                            gs.sms[gs.cursms].tslen = MIN(sctslen - 2, MAX_SMS_TS_LEN);
-
-                                            gs.sms[gs.cursms].index = idx;
-
-                                            if (sta[5] == 'U') {
-                                                gs.sms[gs.cursms].unread = 1;
-                                            } else {
-                                                gs.sms[gs.cursms].unread = 0;
-                                            }
+                                            GSSMS* sms = &gs.sms[++gs.cursms];
+                                            sms->index = index;
+                                            sms->unread = (stat[4] == 'U') ? 1 : 0;
+                                            sms->oaddrlen = MIN(oa_len, MAX_SMS_OADDR_LEN);
+                                            memcpy(sms->oaddr, oa, sms->oaddrlen);
+                                            sms->ts = scts;
+                                            sms->txtlen = MIN(length, MAX_SMS_TXT_LEN - 1);
+                                            gs.skipsms = 0;
                                         }
                                     }
                                 }
@@ -1108,9 +1109,10 @@ void _gs_loop(void* args)
                             //it's a line of text, read the sms
                             if (gs.skipsms) {
                             } else {
-                                DEBUG0("reading sms %i", gs.bytes);
-                                memcpy(gs.sms[gs.cursms].txt, gs.buffer, MIN(gs.bytes - 2, MAX_SMS_TXT_LEN));
-                                gs.sms[gs.cursms].txtlen = MIN(gs.bytes - 2, MAX_SMS_TXT_LEN);
+                                GSSMS* sms = &gs.sms[gs.cursms];
+                                sms->txtlen = MIN(sms->txtlen, gs.bytes - 1);
+                                memcpy(sms->txt, gs.buffer, sms->txtlen);
+                                sms->txt[sms->txtlen] = '\0';
                             }
                         } else {
                             ERROR("Unknown line in slot");

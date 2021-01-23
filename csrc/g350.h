@@ -9,8 +9,7 @@
 #define MAX_CI_LEN 5
 #define MAX_BSIC_LEN 3
 #define MAX_SMS_OADDR_LEN 16
-#define MAX_SMS_TS_LEN 24
-#define MAX_SMS_TXT_LEN 160
+#define MAX_SMS_TXT_LEN 161
 #define MAX_SMS_SCSA_LEN 32
 #define GS_TIMEOUT 1000
 #define GS_TLS_PROFILE 1
@@ -84,14 +83,13 @@ typedef struct _gs_timestamp {
 } GSTimestamp;
 
 typedef struct _gs_sms {
+    int index;
+    uint8_t unread;
     uint8_t oaddr[MAX_SMS_OADDR_LEN];
-    uint8_t ts[MAX_SMS_TS_LEN];
     uint8_t txt[MAX_SMS_TXT_LEN];
     uint8_t oaddrlen;
-    uint8_t tslen;
-    uint8_t unread;
     uint8_t txtlen;
-    int index;
+    GSTimestamp ts;
 } GSSMS;
 
 ////////////GSM STATUS
@@ -194,6 +192,7 @@ enum {
     GS_CMD_CREG,
     GS_CMD_CSCA,
     GS_CMD_CSCS,
+    GS_CMD_CSDH,
     GS_CMD_ECHO,
     GS_CMD_GMR,
     GS_CMD_IPR,
@@ -247,6 +246,7 @@ static const GSCmd gs_commands[] = {
     DEF_CMD("+CREG"   ,   GS_RES_OK, GS_CMD_NORMAL|GS_CMD_URC, GS_CMD_CREG   ),
     DEF_CMD("+CSCA"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_CSCA   ),
     DEF_CMD("+CSCS"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_CSCS   ),
+    DEF_CMD("+CSDH"   ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_CSDH   ),
     DEF_CMD("E"       ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_ECHO   ),
     DEF_CMD("+GMR"    ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_GMR    ),
     DEF_CMD("+IPR"    ,   GS_RES_OK, GS_CMD_NORMAL           , GS_CMD_IPR    ),

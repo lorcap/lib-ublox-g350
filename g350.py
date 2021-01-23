@@ -201,3 +201,7 @@ def select(rlist,wist,xlist,timeout):
 def secure_socket(family, type, proto, ctx):
     pass
 
+@c_native("_g350_sms_list",["csrc/g350_ifc.c"])
+def list_sms(unread,maxsms,offset):
+    pass
+
