@@ -652,16 +652,75 @@ void _gs_handle_urc(GSCmd* cmd)
         if (_gs_parse_command_arguments(buf, ebuf, "ii", &p0, &p1) != 2)
             goto exit_err;
         switch (p0) {
+        case 1:
+            // ("battchg"): <value> provides the battery charge level (0-5)
+            break;
         case 2:
-            //rssi
+            // ("signal"): <value> provides the signal level
+            // 0: < -105 dBm
+            // 1: < -93 dBm
+            // 2: < -81 dBm
+            // 3: < -69 dBm
+            // 4: < - 57 dBm
+            // 5: >= -57 dBm
             gs.rssi = p1;
             break;
         case 3:
-            //service
+            // ("service"): <value> provides the network service availability:
+            // 0: not registered to the network
+            // 1: registered to the network
             gs.registered = p1;
             break;
+        case 4:
+            // ("sounder"): <value> provides the sounder activity:
+            // 0: no sound
+            // 1: sound is generated
+            break;
+        case 5:
+            // ("message"): <value> provides the unread message available in <mem1> storage:
+            // 0: no messages
+            // 1: unread message available
+            break;
+        case 6:
+            // ("call"): <value> provides the call in progress:
+            // 0: no call in progress
+            // 1: call in progress
+            break;
+        case 7:
+            // ("roam"): <value> provides the registration on a roaming network:
+            // 0: not in roaming
+            // 1: roaming
+            break;
+        case 8:
+            // ("smsfull"): <value> provides the SMS storage status:
+            // 0: SMS storage not full
+            // 1: SMS Storage full (an SMS has been rejected with the cause of SMS storage full)
+            break;
         case 9:
+            // ("gprs"): <value> provides the GPRS indication status:
+            // 0: no GPRS available in the network
+            // 1: GPRS available in the network but not registered
+            // 2: registered to GPRS
+            // 65535: PS service indication is not available
             gs.gprs = p1;
+            break;
+        case 10:
+            // ("callsetup"): <value> provides the call set-up:
+            // 0: no call set-up
+            // 1: incoming call not accepted or rejected
+            // 2: outgoing call in dialing state
+            // 3: outgoing call in remote party alerting state
+            break;
+        case 11:
+            // ("callheld"): <value> provides the call on hold:
+            // 0: no calls on hold
+            // 1: at least one call on hold
+            break;
+        case 12:
+            // ("simind"): <value> provides the SIM detection:
+            // 0: no SIM detected
+            // 1: SIM detected
+            // 2: not available
             break;
         default:
             ERROR("Unhandled +CIEV: %i %i", p0, p1);
@@ -698,7 +757,7 @@ void _gs_handle_urc(GSCmd* cmd)
         break;
 
     default:
-        ERROR("Unhandled URC %i", cmd->id);
+        ERROR("Unhandled URC: %i", cmd->id);
     }
 
 exit_ok:

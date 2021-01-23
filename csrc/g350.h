@@ -95,7 +95,7 @@ typedef struct _gsm_status{
     uint8_t gsm_status;
     uint8_t gprs_status;
     int8_t secure_sock_id;
-    uint8_t gprs;
+    uint16_t gprs;
     uint8_t errlen;
     uint8_t mode;
     uint8_t rssi;
