@@ -857,11 +857,8 @@ void _gs_wait_for_slot(void)
  */
 int _gs_wait_for_slot_mode(uint8_t* text, int32_t textlen, uint8_t* addtxt, int addtxtlen)
 {
-    //can be polled!
     int cnt = 0;
-    DEBUG0("Waiting for mode");
 
-    // vhalSerialWrite(gs.serial,">",1);
     while (gs.mode == GS_MODE_NORMAL && cnt < 100) { //after 10 seconds, timeout
         vosThSleep(TIME_U(100, MILLIS));
         cnt++;
@@ -869,29 +866,22 @@ int _gs_wait_for_slot_mode(uint8_t* text, int32_t textlen, uint8_t* addtxt, int 
 
     if(gs.mode != GS_MODE_PROMPT)
         return 1;
-    DEBUG0("Slot wait mode");
-    DEBUG0("-->%s",text);
 
+    DEBUG0("> %s%s", text, addtxt);
     while (textlen > 0) {
         cnt = MIN(64, textlen);
-        DEBUG0("Sending %i", cnt);
         cnt = vhalSerialWrite(gs.serial, text, cnt);
-        DEBUG0("Sent %i", cnt);
         textlen -= cnt;
         text += cnt;
-        DEBUG0("Remaining %i", textlen);
     }
     while (addtxtlen > 0) {
         cnt = MIN(64, addtxtlen);
-        DEBUG0("Sending %i", cnt);
         cnt = vhalSerialWrite(gs.serial, addtxt, cnt);
-        DEBUG0("Sent %i", cnt);
         addtxtlen -= cnt;
         addtxt += cnt;
-        DEBUG0("Remaining %i", addtxtlen);
     }
-    gs.mode = GS_MODE_NORMAL; //back to normal mode
 
+    gs.mode = GS_MODE_NORMAL; //back to normal mode
     return 0;
 }
 

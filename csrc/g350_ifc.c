@@ -113,7 +113,7 @@ C_NATIVE(_g350_shutdown)
         err = ERR_HARDWARE_INITIALIZATION_ERROR;
 
     // attempt normal shutdown
-    vhalSerialInit(gs.serial, 115200, SERIAL_CFG(SERIAL_PARITY_NONE,SERIAL_STOP_ONE, SERIAL_BITS_8, 0, 0), gs.rx, gs.tx);
+    vhalSerialInit(gs.serial, 19200, SERIAL_CFG(SERIAL_PARITY_NONE,SERIAL_STOP_ONE, SERIAL_BITS_8, 0, 0), gs.rx, gs.tx);
     // check alive
     vhalSerialWrite(gs.serial, "ATE0\r\n", 6);
     if (_gs_wait_for_ok(500)) {
