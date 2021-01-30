@@ -1010,7 +1010,8 @@ void _gs_loop(void* args)
         }
         gs.running = 1;
         if (gs.mode != GS_MODE_PROMPT) {
-            if (_gs_readline(100) <= 3) {
+            _gs_readline(100);
+            if (gs.bytes <= 3) {
                 if (gs.bytes >= 1
                 &&  gs.buffer[0] == '>'
                 &&  gs.slot
@@ -1025,9 +1026,11 @@ void _gs_loop(void* args)
                     if (gs.slot->timeout && (vosMillis() - gs.slot->stime) > gs.slot->timeout) {
                         //slot timed out
                         _gs_slot_timeout();
+                        continue;
                     }
                 }
-                continue;
+                if (!gs.slot || gs.slot->data_line == 0)
+                    continue;
             }
             cmd = _gs_parse_command_response();
             if (gs.slot) {
@@ -1073,6 +1076,7 @@ void _gs_loop(void* args)
                                             sms->ts = scts;
                                             sms->txtlen = MIN(length, MAX_SMS_TXT_LEN - 1);
                                             gs.skipsms = 0;
+                                            gs.slot->data_line = 1;
                                         }
                                     }
                                 }
@@ -1113,6 +1117,7 @@ void _gs_loop(void* args)
                                 sms->txtlen = MIN(sms->txtlen, gs.bytes - 1);
                                 memcpy(sms->txt, gs.buffer, sms->txtlen);
                                 sms->txt[sms->txtlen] = '\0';
+                                gs.slot->data_line = 0;
                             }
                         } else {
                             ERROR("Unknown line in slot");

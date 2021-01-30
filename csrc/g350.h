@@ -53,7 +53,8 @@ typedef struct _gs_slot {
     uint8_t has_params;
     uint8_t params;
     uint16_t max_size;
-    uint16_t unused2;
+    uint8_t data_line;
+    uint8_t unused2;
     uint32_t stime;
     uint32_t timeout;
     uint8_t *resp;
