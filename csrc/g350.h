@@ -116,6 +116,7 @@ typedef struct _gsm_status{
     uint16_t tx;
     uint16_t poweron;
     uint16_t reset;
+    uint32_t baud;
     uint16_t bytes;
     GSSlot *slot;
     VSemaphore sendlock;

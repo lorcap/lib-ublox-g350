@@ -39,9 +39,9 @@ def auto_init():
     else:
         raise UnsupportedError
 
-def init(serial,dtr,rts,poweron,reset):
+def init(serial,dtr,rts,poweron,reset,baud=115200):
     """
-.. function::init(serial,dtr,rts,poweron,reset)
+.. function::init(serial,dtr,rts,poweron,reset,baud=115200)
 
     Initialize the G350 device given the following parameters:
 
@@ -50,9 +50,10 @@ def init(serial,dtr,rts,poweron,reset):
     * *rts*, the RTS pin of G350
     * *poweron*, the power up pin of G350
     * *reset*, the reset pin of G350
+    * *baud*, baud rate for serial line
 
     """
-    _init(serial,dtr,rts,poweron,reset,__nameof(g350Exception))
+    _init(serial,dtr,rts,poweron,reset,baud,__nameof(g350Exception))
     __builtins__.__default_net["gsm"] = __module__
     __builtins__.__default_net["ssl"] = __module__
     __builtins__.__default_net["sock"][0] = __module__ #AF_INET

@@ -175,7 +175,7 @@ int _gs_poweron(void)
     vhalPinSetMode(gs.reset, PINMODE_OUTPUT_PUSHPULL);
     vhalPinWrite(gs.reset, 1);
 
-    if (vhalSerialInit(gs.serial, 115200, SERIAL_CFG(SERIAL_PARITY_NONE,SERIAL_STOP_ONE, SERIAL_BITS_8, 0, 0), gs.rx, gs.tx) != 0) {
+    if (vhalSerialInit(gs.serial, gs.baud, SERIAL_CFG(SERIAL_PARITY_NONE,SERIAL_STOP_ONE, SERIAL_BITS_8, 0, 0), gs.rx, gs.tx) != 0) {
         err = GS_ERR_INVALID;
         goto exit;
     }

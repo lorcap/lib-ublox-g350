@@ -25,10 +25,11 @@ C_NATIVE(_g350_init)
     int32_t dtr;
     int32_t poweron;
     int32_t reset;
+    int32_t baud;
     int32_t err = ERR_OK;
     int32_t exc;
 
-    if (parse_py_args("iiiiii", nargs, args, &serial, &dtr, &rts, &poweron, &reset, &exc) != 6)
+    if (parse_py_args("iiiiii", nargs, args, &serial, &dtr, &rts, &poweron, &reset, &baud, &exc) != 6)
         return ERR_TYPE_EXC;
 
     g350exc = exc;
@@ -44,6 +45,7 @@ C_NATIVE(_g350_init)
     gs.rts = rts;
     gs.poweron = poweron;
     gs.reset = reset;
+    gs.baud = baud;
     ACQUIRE_GIL();
 
     return err;
