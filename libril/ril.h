@@ -198,6 +198,18 @@ int ril_at_csdh (ril_state_t* st, int* mode);
 /// Show text mode parameters +CSDH (set)
 int ril_at_csdh_set (ril_state_t* st, int mode);
 
+/// New message indication +CNMI
+int ril_at_cnmi (ril_state_t* st, int* mode, int* mt, int* bm, int* ds, int* bfr);
+
+/// New message indication +CNMI (set)
+int ril_at_cnmi_set (ril_state_t* st, int mode, int mt, int bm, int ds, int bfr);
+
+/// Service center address +CSCA
+int ril_at_csca (ril_state_t* st, char* sca, int* tosca);
+
+/// Service center address +CSCA (set)
+int ril_at_csca_set (ril_state_t* st, const char* sca);
+
 ///@}
 
 

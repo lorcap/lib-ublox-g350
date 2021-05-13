@@ -314,6 +314,57 @@ ril_at_csdh_set (ril_state_t* st,
         return _at_set(st, "+CMGF", mode);
 }
 
+int
+ril_at_cnmi (ril_state_t* st,
+             int* mode,
+             int* mt,
+             int* bm,
+             int* ds,
+             int* bfr)
+{
+        ril_cmd_query(st, "+CNMI");
+        ril_rsp_echo (st);
+        ril_rsp_scanf(st, "%s: %d,%d,%d,%d,%d%$", "+CNMI", mode, mt, bm, ds, bfr);
+        ril_rsp_final(st);
+        return st->error;
+}
+
+int
+ril_at_cnmi_set (ril_state_t* st,
+                 int mode,
+                 int mt,
+                 int bm,
+                 int ds,
+                 int bfr)
+{
+        ril_cmd_printf(st, "%A=%d,%d,%d,%d,%d%$", "+CNMI", mode, mt, bm, ds, bfr);
+        ril_rsp_echo  (st);
+        ril_rsp_final (st);
+        return st->error;
+}
+
+int
+ril_at_csca (ril_state_t* st,
+             char* csa,
+             int* tosca)
+{
+        ril_cmd_query(st, "+CSCA");
+        ril_rsp_echo (st);
+        ril_rsp_scanf(st, "%s: %\"s,%d%$", "+CSCA", csa, tosca);
+        ril_rsp_final(st);
+        return st->error;
+}
+
+int
+ril_at_csca_set (ril_state_t* st,
+                 const char* csa)
+{
+        ril_cmd_printf(st, "%A=%\"s%$", "+CSCA", csa);
+        ril_rsp_echo  (st);
+        ril_rsp_final (st);
+        return st->error;
+}
+
 
 /* *** V24 control and V25ter ******************************************** */
 

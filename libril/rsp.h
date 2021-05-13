@@ -509,7 +509,7 @@ int ril_rsp_strp (ril_state_t* st, const char* pattern, char* str);
  * @param escape
  *      escape character
  * @param str
- *      output string (including quotes and escape)
+ *      output string (including escape, excluding quotes)
  * @return
  *      number of read bytes
  */
@@ -525,7 +525,7 @@ int ril_rsp_strqqe (ril_state_t* st, char quote_begin, char quote_end,
  * @param escape
  *      escape character
  * @param str
- *      output string
+ *      output string (including escape, excluding quotes)
  * @return
  *      number of read bytes
  */
@@ -540,7 +540,7 @@ int ril_rsp_strqe (ril_state_t* st, char quote, char escape, char* str);
  * @param quote_end
  *      suffix character
  * @param str
- *      output string
+ *      output string (excluding quotes)
  * @return
  *      number of read bytes
  */
@@ -553,7 +553,7 @@ int ril_rsp_strqq (ril_state_t* st, char quote_begin, char quote_end, char* str)
  * @param quote
  *      prefix and suffix character
  * @param str
- *      output string
+ *      output string (excluding quotes)
  * @return
  *      number of read bytes
  */

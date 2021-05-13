@@ -132,6 +132,28 @@ class Ril:
     def at_csdh_set (self, mode):
         return dll.ril_at_csdh_set(self._state, mode)
 
+    def at_cnmi (self):
+        mode = c_int()
+        mt = c_int()
+        bm = c_int()
+        ds = c_int()
+        bfr = c_int()
+        err = dll.ril_at_cnmi(self._state, byref(mode), byref(mt), byref(bm),
+                                           byref(ds), byref(bfr))
+        return err, mode.value, mt.value, bm.value, ds.value, bfr.value
+
+    def at_cnmi_set (self, mode, mt, bm, ds, bfr):
+        return dll.ril_at_cnmi_set(self._state, mode, mt, bm, ds, bfr)
+
+    def at_csca (self):
+        csa = (c_char*BUF_MAX)()
+        tocsa = c_int()
+        err = dll.ril_at_csca(self._state, byref(csa), byref(tocsa))
+        return err, csa.value.decode('ascii'), tocsa.value
+
+    def at_csca_set (self, csa):
+        return dll.ril_at_csca_set(self._state, csa.encode('ascii'))
+
 
     #--- V24 control and V25ter --------------------------------------------#
 

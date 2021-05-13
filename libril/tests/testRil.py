@@ -43,18 +43,14 @@ class TestRil (unittest.TestCase):
 
     def test_ril_at_cscs (self):
         ril.rsp_ok('+CSCS: "IRA"')
-        print(ril)
         err, chset = ril.at_cscs()
-        print(ril)
         self.assertEqual(err, -Error.NONE)
         self.assertEqual(ril.cmd(), 'AT+CSCS?\r\n')
         self.assertEqual(chset, 4)
 
     def test_ril_at_cscs_set (self):
         ril.rsp_ok()
-        print(ril)
         err = ril.at_cscs_set(4)
-        print(ril)
         self.assertEqual(err, -Error.NONE)
         self.assertEqual(ril.cmd(), 'AT+CSCS="IRA"\r\n')
 
@@ -124,6 +120,38 @@ class TestRil (unittest.TestCase):
 
     def test_ril_at_csdh_set (self):
         self._at_set('+CMGF', ril.at_csdh_set, 1)
+
+    def test_ril_at_cnmi (self):
+        ril.rsp_ok('+CNMI: 0,0,0,0,0')
+        err, mode, mt, bm, ds, bfr = ril.at_cnmi()
+        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(ril.cmd(), f'AT+CNMI?\r\n')
+        self.assertEqual(mode, 0)
+        self.assertEqual(mt, 0)
+        self.assertEqual(bm, 0)
+        self.assertEqual(ds, 0)
+        self.assertEqual(bfr, 0)
+
+    def test_ril_at_cnmi_set (self):
+        ril.rsp_ok()
+        err = ril.at_cnmi_set(1, 1, 0, 0, 0)
+        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(ril.cmd(), f'AT+CNMI=1,1,0,0,0\r\n')
+
+    def test_ril_at_csca (self):
+        ril.rsp_ok('+CSCA: "",129')
+        err, csa, tocsa = ril.at_csca()
+        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(ril.cmd(), f'AT+CSCA?\r\n')
+        self.assertEqual(csa, '')
+        self.assertEqual(tocsa, 129)
+
+    def test_ril_at_csca_set (self):
+        csa = '0170111000'
+        ril.rsp_ok()
+        err = ril.at_csca_set(csa)
+        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(ril.cmd(), f'AT+CSCA="{csa}"\r\n')
 
 
     #--- V24 control and V25ter --------------------------------------------#

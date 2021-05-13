@@ -354,7 +354,7 @@ class TestRsp (unittest.TestCase):
         count, val = rsp.strqqe(b'<', b'>', b'\\')
         self.assertEqual(rsp.error, -Error.NONE)
         self.assertEqual(count, len(s))
-        self.assertEqual(val, s)
+        self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp39_strqq (self):
@@ -364,7 +364,7 @@ class TestRsp (unittest.TestCase):
         count, val = rsp.strqq(b'<', b'>')
         self.assertEqual(rsp.error, -Error.NONE)
         self.assertEqual(count, len(s))
-        self.assertEqual(val, s)
+        self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp40_strqe (self):
@@ -375,7 +375,7 @@ class TestRsp (unittest.TestCase):
         count, val = rsp.strqe(b'"', b'\\')
         self.assertEqual(rsp.error, -Error.NONE)
         self.assertEqual(count, len(s))
-        self.assertEqual(val, s)
+        self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp41_strq (self):
@@ -385,7 +385,7 @@ class TestRsp (unittest.TestCase):
         count, val = rsp.strq(b'"')
         self.assertEqual(rsp.error, -Error.NONE)
         self.assertEqual(count, len(s))
-        self.assertEqual(val, s)
+        self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp42_strq_not (self):
@@ -634,7 +634,7 @@ class TestRsp (unittest.TestCase):
         count, val = rsp.scanf(b'%<>|s', b'<', b'>', b'\\', c_char_p)
         self.assertEqual(rsp.error, -Error.NONE)
         self.assertEqual(count, len(s))
-        self.assertEqual(val, s)
+        self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp74_scanf_strqq (self):
@@ -644,7 +644,7 @@ class TestRsp (unittest.TestCase):
         count, val = rsp.scanf(b'%<>s', b'<', b'>', c_char_p)
         self.assertEqual(rsp.error, -Error.NONE)
         self.assertEqual(count, len(s))
-        self.assertEqual(val, s)
+        self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp75_scanf_strqe (self):
@@ -655,7 +655,7 @@ class TestRsp (unittest.TestCase):
         count, val = rsp.scanf(b'%\'|s', b'"', b'\\', c_char_p)
         self.assertEqual(rsp.error, -Error.NONE)
         self.assertEqual(count, len(s))
-        self.assertEqual(val, s)
+        self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp76_scanf_strq (self):
@@ -665,7 +665,7 @@ class TestRsp (unittest.TestCase):
         count, val = rsp.scanf(b'%\'s', b'"', c_char_p)
         self.assertEqual(rsp.error, -Error.NONE)
         self.assertEqual(count, len(s))
-        self.assertEqual(val, s)
+        self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp77_scanf_str_dquote (self):
@@ -675,7 +675,7 @@ class TestRsp (unittest.TestCase):
         count, val = rsp.scanf(b'%"s', c_char_p)
         self.assertEqual(rsp.error, -Error.NONE)
         self.assertEqual(count, len(s))
-        self.assertEqual(val, s)
+        self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp78_scanf (self):

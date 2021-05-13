@@ -612,7 +612,8 @@ ril_rsp_strqqe (ril_state_t* st,
         if (!ril_rsp_match_char(st, quote_end))
                 return ril_rsp_res_abort(st, -RIL_ERR_RSP_STRQQE_END);
 
-        return ril_rsp_res_ok_str(st, str);
+        memcpy(str, st->buf + 1, st->index - 2);
+        return ril_rsp_res_ok(st);
 }
 
 int
