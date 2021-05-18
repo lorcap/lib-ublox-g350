@@ -304,5 +304,8 @@ class TestCmd (unittest.TestCase):
         self.assertEqual(count, len(b))
         self.assertEqual(cmd.command(), b)
 
+# Tip for renumbering tests under vim:
+# :let i=1 | g/test_\(cmd\|rsp\)\zs\d\+\ze/ s//\=printf("%02d", i)/ | let i+=1
+
 if __name__ == '__main__':
     unittest.main()

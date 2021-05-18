@@ -39,11 +39,11 @@ void ril_deinit (ril_state_t* st);
  */
 ///@{
 
-/// Firmware version identification +CGMR
-int ril_at_cgmr (ril_state_t* st, char* version);
+/// Firmware version identification +CGMR (read)
+int ril_at_cgmr_read (ril_state_t* st, char* version);
 
 /// Card identification +CCID
-int ril_at_ccid (ril_state_t* st, char* ccid);
+int ril_at_ccid_read (ril_state_t* st, char* ccid);
 
 ///@}
 
@@ -66,8 +66,8 @@ enum RIL_CSCS_CHSET
         RIL_CSCS_CHSET_UCS2,
 };
 
-/// TE character set configuration +CSCS
-int ril_at_cscs (ril_state_t* st, enum RIL_CSCS_CHSET* chset);
+/// TE character set configuration +CSCS (read)
+int ril_at_cscs_read (ril_state_t* st, enum RIL_CSCS_CHSET* chset);
 
 /// TE character set configuration +CSCS (set)
 int ril_at_cscs_set (ril_state_t* st, enum RIL_CSCS_CHSET chset);
@@ -105,9 +105,9 @@ enum RIL_CMER_BFR
         RIL_CMER_BFR_FLUSH,
 };
 
-/// Mobile termination event reporting +CMER
-int ril_at_cmer (ril_state_t* st, enum RIL_CMER_MODE* mode,
-                 enum RIL_CMER_IND* ind, enum RIL_CMER_BFR* bfr);
+/// Mobile termination event reporting +CMER (read)
+int ril_at_cmer_read (ril_state_t* st, enum RIL_CMER_MODE* mode,
+                      enum RIL_CMER_IND* ind, enum RIL_CMER_BFR* bfr);
 
 /// Mobile termination event reporting +CMER (set)
 int ril_at_cmer_set (ril_state_t* st, enum RIL_CMER_MODE mode,
@@ -119,10 +119,10 @@ int ril_at_cmer_set (ril_state_t* st, enum RIL_CMER_MODE mode,
  * `year` shall be a number greater than 2000. `timezone` shall be in
  * minutes rather than quarter of hour.
  */
-int ril_at_cclk (ril_state_t* st,
-                 int* year, int* month, int* day,
-                 int* hours, int* minutes, int* seconds,
-                 int* timezone);
+int ril_at_cclk_read (ril_state_t* st,
+                      int* year, int* month, int* day,
+                      int* hours, int* minutes, int* seconds,
+                      int* timezone);
 
 /// Clock +CCLK (set)
 /**
@@ -143,8 +143,8 @@ enum RIL_CMEE_ERROR
         RIL_CMEE_ERROR_ENABLED_VERBOSE,
 };
 
-/// Report mobile termination error +CMEE
-int ril_at_cmee (ril_state_t* st, enum RIL_CMEE_ERROR* n);
+/// Report mobile termination error +CMEE (read)
+int ril_at_cmee_read (ril_state_t* st, enum RIL_CMEE_ERROR* n);
 
 /// Report mobile termination error +CMEE (set)
 int ril_at_cmee_set (ril_state_t* st, enum RIL_CMEE_ERROR n);
@@ -171,8 +171,8 @@ enum RIL_CGED_MODE
         RIL_CGED_MODE_DEFAULT = RIL_CGED_MODE_ONE_SHOT_DUMP
 };
 
-///  Cell environment description +CGED
-int ril_at_cged (ril_state_t* st, enum RIL_CGED_MODE* mode);
+///  Cell environment description +CGED (read)
+int ril_at_cged_read (ril_state_t* st, enum RIL_CGED_MODE* mode);
 
 ///  Cell environment description +CGED (set)
 int ril_at_cged_set (ril_state_t* st, enum RIL_CGED_MODE mode);
@@ -186,26 +186,26 @@ int ril_at_cged_set (ril_state_t* st, enum RIL_CGED_MODE mode);
  */
 ///@{
 
-/// Preferred message format +CMGF
-int ril_at_cmgf (ril_state_t* st, int* mode);
+/// Preferred message format +CMGF (read)
+int ril_at_cmgf_read (ril_state_t* st, int* mode);
 
 /// Preferred message format +CMGF (set)
 int ril_at_cmgf_set (ril_state_t* st, int mode);
 
-/// Show text mode parameters +CSDH
-int ril_at_csdh (ril_state_t* st, int* mode);
+/// Show text mode parameters +CSDH (read)
+int ril_at_csdh_read (ril_state_t* st, int* mode);
 
 /// Show text mode parameters +CSDH (set)
 int ril_at_csdh_set (ril_state_t* st, int mode);
 
-/// New message indication +CNMI
-int ril_at_cnmi (ril_state_t* st, int* mode, int* mt, int* bm, int* ds, int* bfr);
+/// New message indication +CNMI (read)
+int ril_at_cnmi_read (ril_state_t* st, int* mode, int* mt, int* bm, int* ds, int* bfr);
 
 /// New message indication +CNMI (set)
 int ril_at_cnmi_set (ril_state_t* st, int mode, int mt, int bm, int ds, int bfr);
 
-/// Service center address +CSCA
-int ril_at_csca (ril_state_t* st, char* sca, int* tosca);
+/// Service center address +CSCA (read)
+int ril_at_csca_read (ril_state_t* st, char* sca, int* tosca);
 
 /// Service center address +CSCA (set)
 int ril_at_csca_set (ril_state_t* st, const char* sca);
@@ -231,8 +231,8 @@ int ril_ate_set (ril_state_t* st, int value);
  */
 ///@{
 
-/// GPRS attach or detach +CGATT
-int ril_at_cgatt (ril_state_t* st, int* state);
+/// GPRS attach or detach +CGATT (read)
+int ril_at_cgatt_read (ril_state_t* st, int* state);
 
 /// GPRS attach or detach +CGATT (set)
 int ril_at_cgatt_set (ril_state_t* st, int state);
@@ -257,10 +257,10 @@ enum RIL_CGREG_STAT
         RIL_CGREG_STAT_REGISTERED_ROAMING,
 };
 
-/// GPRS network registration status +CGREG
-int ril_at_cgreg (ril_state_t* st, enum RIL_CGREG_N* n,
-                  enum RIL_CGREG_STAT* stat, unsigned int* lac,
-                  unsigned int* ci);
+/// GPRS network registration status +CGREG (read)
+int ril_at_cgreg_read (ril_state_t* st, enum RIL_CGREG_N* n,
+                       enum RIL_CGREG_STAT* stat, unsigned int* lac,
+                       unsigned int* ci);
 
 /// GPRS network registration status +CGREG (set)
 int ril_at_cgreg_set (ril_state_t* st, enum RIL_CGREG_N n);

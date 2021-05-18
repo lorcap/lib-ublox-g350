@@ -64,8 +64,8 @@ ril_deinit (ril_state_t* st)
 /* *** General operation ************************************************* */
 
 int
-ril_at_cgmr (ril_state_t* st,
-             char* v)
+ril_at_cgmr_read (ril_state_t* st,
+                  char* v)
 {
         ril_cmd_printf(st, "%A%$", "+CGMR");
         ril_rsp_echo  (st);
@@ -76,8 +76,8 @@ ril_at_cgmr (ril_state_t* st,
 }
 
 int
-ril_at_ccid (ril_state_t* st,
-             char* ccid)
+ril_at_ccid_read (ril_state_t* st,
+                  char* ccid)
 {
         ril_cmd_printf(st, "%A%$", "+CCID");
         ril_rsp_echo  (st);
@@ -90,8 +90,8 @@ ril_at_ccid (ril_state_t* st,
 /* *** General *********************************************************** */
 
 int
-ril_at_cscs (ril_state_t* st,
-             enum RIL_CSCS_CHSET* chset)
+ril_at_cscs_read (ril_state_t* st,
+                  enum RIL_CSCS_CHSET* chset)
 {
         char chset_[8];
 
@@ -180,10 +180,10 @@ ril_at_cscs_set (ril_state_t* st,
 /* *** Mobile equipment control and status ******************************* */
 
 int
-ril_at_cmer (ril_state_t* st,
-             enum RIL_CMER_MODE* mode,
-             enum RIL_CMER_IND* ind,
-             enum RIL_CMER_BFR* bfr)
+ril_at_cmer_read (ril_state_t* st,
+                  enum RIL_CMER_MODE* mode,
+                  enum RIL_CMER_IND* ind,
+                  enum RIL_CMER_BFR* bfr)
 {
         ril_cmd_printf(st, "%A?%$", "+CMER");
         ril_rsp_echo  (st);
@@ -205,14 +205,14 @@ ril_at_cmer_set (ril_state_t* st,
 }
 
 int
-ril_at_cclk (ril_state_t* st,
-             int* year,
-             int* month,
-             int* day,
-             int* hours,
-             int* minutes,
-             int* seconds,
-             int* timezone)
+ril_at_cclk_read (ril_state_t* st,
+                  int* year,
+                  int* month,
+                  int* day,
+                  int* hours,
+                  int* minutes,
+                  int* seconds,
+                  int* timezone)
 {
         ril_cmd_printf(st, "%A?%$", "+CCLK");
         ril_rsp_echo  (st);
@@ -248,8 +248,8 @@ ril_at_cclk_set (ril_state_t* st,
 }
 
 int
-ril_at_cmee (ril_state_t* st,
-             enum RIL_CMEE_ERROR* n)
+ril_at_cmee_read (ril_state_t* st,
+                  enum RIL_CMEE_ERROR* n)
 {
         return _at_read(st, "+CMEE", (int*)n);
 }
@@ -265,8 +265,8 @@ ril_at_cmee_set (ril_state_t* st,
 /* *** Network service *************************************************** */
 
 int
-ril_at_cged (ril_state_t* st,
-             enum RIL_CGED_MODE* mode)
+ril_at_cged_read (ril_state_t* st,
+                  enum RIL_CGED_MODE* mode)
 {
         ril_cmd_printf(st, "%A?%$", "+CGED");
         ril_rsp_echo  (st);
@@ -287,8 +287,8 @@ ril_at_cged_set (ril_state_t* st,
 /* *** Short Messages Service ******************************************** */
 
 int
-ril_at_cmgf (ril_state_t* st,
-             int* mode)
+ril_at_cmgf_read (ril_state_t* st,
+                  int* mode)
 {
         return _at_read(st, "+CMGF", mode);
 }
@@ -301,8 +301,8 @@ ril_at_cmgf_set (ril_state_t* st,
 }
 
 int
-ril_at_csdh (ril_state_t* st,
-             int* mode)
+ril_at_csdh_read (ril_state_t* st,
+                  int* mode)
 {
         return _at_read(st, "+CMGF", mode);
 }
@@ -315,12 +315,12 @@ ril_at_csdh_set (ril_state_t* st,
 }
 
 int
-ril_at_cnmi (ril_state_t* st,
-             int* mode,
-             int* mt,
-             int* bm,
-             int* ds,
-             int* bfr)
+ril_at_cnmi_read (ril_state_t* st,
+                  int* mode,
+                  int* mt,
+                  int* bm,
+                  int* ds,
+                  int* bfr)
 {
         ril_cmd_query(st, "+CNMI");
         ril_rsp_echo (st);
@@ -344,9 +344,9 @@ ril_at_cnmi_set (ril_state_t* st,
 }
 
 int
-ril_at_csca (ril_state_t* st,
-             char* csa,
-             int* tosca)
+ril_at_csca_read (ril_state_t* st,
+                  char* csa,
+                  int* tosca)
 {
         ril_cmd_query(st, "+CSCA");
         ril_rsp_echo (st);
@@ -385,8 +385,8 @@ ril_ate_set (ril_state_t* st,
 /* *** Packet switched data servicies ************************************ */
 
 int
-ril_at_cgatt (ril_state_t* st,
-              int* state)
+ril_at_cgatt_read (ril_state_t* st,
+                   int* state)
 {
         return _at_read(st, "+CGATT", state);
 }
@@ -399,11 +399,11 @@ ril_at_cgatt_set (ril_state_t* st,
 }
 
 int
-ril_at_cgreg (ril_state_t* st,
-              enum RIL_CGREG_N* n,
-              enum RIL_CGREG_STAT* stat,
-              unsigned int* lac,
-              unsigned int* ci)
+ril_at_cgreg_read (ril_state_t* st,
+                   enum RIL_CGREG_N* n,
+                   enum RIL_CGREG_STAT* stat,
+                   unsigned int* lac,
+                   unsigned int* ci)
 {
         ril_cmd_printf(st, "%A?%$", "+CGREG");
         ril_rsp_echo  (st);

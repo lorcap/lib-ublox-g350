@@ -44,22 +44,22 @@ class Ril:
 
     #--- General operation -------------------------------------------------#
 
-    def at_cgmr (self):
+    def at_cgmr_read (self):
         version = (c_char*BUF_MAX)()
-        err = dll.ril_at_cgmr(self._state, byref(version))
+        err = dll.ril_at_cgmr_read(self._state, byref(version))
         return err, version.value.decode('ascii')
 
-    def at_ccid (self):
+    def at_ccid_read (self):
         ccid = (c_char*BUF_MAX)()
-        err = dll.ril_at_ccid(self._state, byref(ccid))
+        err = dll.ril_at_ccid_read(self._state, byref(ccid))
         return err, ccid.value.decode('ascii')
 
 
     #--- General -----------------------------------------------------------#
 
-    def at_cscs (self):
+    def at_cscs_read (self):
         chset = c_int()
-        err = dll.ril_at_cscs(self._state, byref(chset))
+        err = dll.ril_at_cscs_read(self._state, byref(chset))
         return err, chset.value
 
     def at_cscs_set (self, chset):
@@ -68,17 +68,17 @@ class Ril:
 
     #--- Mobile equipment control and status -------------------------------#
 
-    def at_cmer (self):
+    def at_cmer_read (self):
         mode = c_int()
         ind  = c_int()
         bfr  = c_int()
-        err = dll.ril_at_cmer(self._state, byref(mode), byref(ind), byref(bfr))
+        err = dll.ril_at_cmer_read(self._state, byref(mode), byref(ind), byref(bfr))
         return err, mode.value, ind.value, bfr.value
 
     def at_cmer_set (self, mode, ind, bfr):
         return dll.ril_at_cmer_set(self._state, mode, ind, bfr)
 
-    def at_cclk (self):
+    def at_cclk_read (self):
         year     = c_int()
         month    = c_int()
         day      = c_int()
@@ -86,7 +86,7 @@ class Ril:
         minutes  = c_int()
         seconds  = c_int()
         timezone = c_int()
-        err = dll.ril_at_cclk(self._state,
+        err = dll.ril_at_cclk_read(self._state,
                     byref(year), byref(month), byref(day),
                     byref(hours), byref(minutes), byref(seconds),
                     byref(timezone))
@@ -102,8 +102,8 @@ class Ril:
                     hours, minutes, seconds,
                     timezone)
 
-    def at_cmee (self):
-        return self._at_read(dll.ril_at_cmee)
+    def at_cmee_read (self):
+        return self._at_read(dll.ril_at_cmee_read)
 
     def at_cmee_set (self, n):
         return dll.ril_at_cmee_set(self._state, n)
@@ -111,8 +111,8 @@ class Ril:
 
     #--- Network service ---------------------------------------------------#
 
-    def at_cged (self):
-        return self._at_read(dll.ril_at_cged)
+    def at_cged_read (self):
+        return self._at_read(dll.ril_at_cged_read)
 
     def at_cged_set (self, state):
         return dll.ril_at_cged_set(self._state, state)
@@ -120,35 +120,35 @@ class Ril:
 
     #--- Short Messages Service --------------------------------------------#
 
-    def at_cmgf (self):
-        return self._at_read(dll.ril_at_cmgf)
+    def at_cmgf_read (self):
+        return self._at_read(dll.ril_at_cmgf_read)
 
     def at_cmgf_set (self, mode):
         return dll.ril_at_cmgf_set(self._state, mode)
 
-    def at_csdh (self):
-        return self._at_read(dll.ril_at_csdh)
+    def at_csdh_read (self):
+        return self._at_read(dll.ril_at_csdh_read)
 
     def at_csdh_set (self, mode):
         return dll.ril_at_csdh_set(self._state, mode)
 
-    def at_cnmi (self):
+    def at_cnmi_read (self):
         mode = c_int()
         mt = c_int()
         bm = c_int()
         ds = c_int()
         bfr = c_int()
-        err = dll.ril_at_cnmi(self._state, byref(mode), byref(mt), byref(bm),
-                                           byref(ds), byref(bfr))
+        err = dll.ril_at_cnmi_read(self._state, byref(mode), byref(mt), byref(bm),
+                                                byref(ds), byref(bfr))
         return err, mode.value, mt.value, bm.value, ds.value, bfr.value
 
     def at_cnmi_set (self, mode, mt, bm, ds, bfr):
         return dll.ril_at_cnmi_set(self._state, mode, mt, bm, ds, bfr)
 
-    def at_csca (self):
+    def at_csca_read (self):
         csa = (c_char*BUF_MAX)()
         tocsa = c_int()
-        err = dll.ril_at_csca(self._state, byref(csa), byref(tocsa))
+        err = dll.ril_at_csca_read(self._state, byref(csa), byref(tocsa))
         return err, csa.value.decode('ascii'), tocsa.value
 
     def at_csca_set (self, csa):
@@ -163,18 +163,18 @@ class Ril:
 
     #--- Packet switched data servicies ------------------------------------#
 
-    def at_cgatt (self):
-        return self._at_read(dll.ril_at_cgatt)
+    def at_cgatt_read (self):
+        return self._at_read(dll.ril_at_cgatt_read)
 
     def at_cgatt_set (self, state):
         return dll.ril_at_cgatt_set(self._state, state)
 
-    def at_cgreg (self):
+    def at_cgreg_read (self):
         n    = c_int()
         stat = c_int()
         lac  = c_int()
         ci   = c_int()
-        err = dll.ril_at_cgreg(self._state, byref(n), byref(stat), byref(lac), byref(ci));
+        err = dll.ril_at_cgreg_read(self._state, byref(n), byref(stat), byref(lac), byref(ci));
         return err, n.value, stat.value, lac.value, ci.value
 
     def at_cgreg_set (self, n):

@@ -18,3 +18,6 @@ class TestRil (unittest.TestCase):
         err = ril.at_udconf1_set(0)
         self.assertEqual(err, -Error.NONE)
         self.assertEqual(ril.cmd(), 'AT+UDCONF=1,0\r\n')
+
+if __name__ == '__main__':
+    unittest.main()
