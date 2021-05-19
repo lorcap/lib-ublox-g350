@@ -79,10 +79,13 @@ void ril_rsp_deinit (ril_state_t* st);
  *
  * @param st
  *      internal state
+ * @param timeout
+ *      maximum time allowed for the whole response, or `0` to keep
+ *      going with previous value
  * @return
  *      number of read bytes
  */
-int ril_rsp_echo (ril_state_t* st);
+int ril_rsp_echo (ril_state_t* st, unsigned int timeout);
 
 /// read a line containing the final result code for the AT command
 /**

@@ -17,21 +17,36 @@ _clear (ril_state_t* st)
 static char
 _read (ril_state_t* st)
 {
-        const char c = st->read(st->read_obj);
-
-        if (c == '\0' || st->count == st->buf_max)
+        if (st->count == st->buf_max)
+        {
+                st->error = -RIL_ERR_RSP_READ_OVERFLOW;
                 return '\0';
+        }
 
-        st->buf[st->count] = c;
-        ++st->count;
-        return c;
+        const int c = st->read(st->read_obj, st->timeout);
+
+        if (0 <= c && c <= 255)
+        {
+                st->buf[st->count] = c;
+                ++st->count;
+                st->timeout = 0;
+                return c;
+        }
+
+        if (c == -2)
+                st->error = -RIL_ERR_RSP_READ_TIMEOUT;
+
+        return '\0';
 }
 
 static char
 _get (ril_state_t* st)
 {
         if (st->index == st->buf_max)
+        {
+                st->error = -RIL_ERR_RSP_READ_UNDERFLOW;
                 return '\0';
+        }
 
         char c = (st->index == st->count)
                ? _read(st)
@@ -64,19 +79,25 @@ ril_rsp_deinit (ril_state_t* st)
 }
 
 int
-ril_rsp_echo (ril_state_t* st)
+ril_rsp_echo (ril_state_t* st,
+              unsigned int timeout)
 {
         if (st->error)
                 return 0;
         _clear(st);
 
+        int ret;
+        st->timeout = RIL_RT_10ms;
         if (ril_rsp_match_eol(st))
-                return ril_rsp_res_ok(st);
-
+                ret = ril_rsp_res_ok(st);
+        else
         if (ril_rsp_match_str(st, "AT"))
-                return ril_rsp_line_dump(st);
+                ret = ril_rsp_line_dump(st);
+        else
+                return ril_rsp_res_abort(st, -RIL_ERR_RSP_ECHO);
 
-        return ril_rsp_res_abort(st, -RIL_ERR_RSP_ECHO);
+        st->timeout = timeout;
+        return ret;
 }
 
 int
@@ -318,7 +339,7 @@ ril_rsp_flush (ril_state_t* st)
 {
         size_t count = st->count;
         _clear(st);
-        for (; st->read(st->read_obj); ++count);
+        for (; st->read(st->read_obj, RIL_RT_1ms) >= 0; ++count);
         return count;
 }
 
@@ -412,7 +433,8 @@ ril_rsp_match_char (ril_state_t* st,
         if (_get(st) == c)
                 return 1;
 
-        --st->index;
+        if (!st->error)
+                --st->index;
         return 0;
 }
 
@@ -486,8 +508,8 @@ ril_rsp_charn (ril_state_t* st,
                         buffer[i] = st->buf[st->index];
         ril_rsp_res_ok(st);
 
-        char b;
-        for (; (i < n) && (b = st->read(st->read_obj)); i++)
+        int b;
+        for (; (i < n) && (b = st->read(st->read_obj, RIL_RT_1ms)) >= 0; i++)
                 if (buffer)
                         buffer[i] = b;
 

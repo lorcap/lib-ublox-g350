@@ -12,18 +12,19 @@ int
 ril_at_udconf1 (ril_state_t* st,
                 int* hex_mode)
 {
-        return ril_at_udconf(st, 1, hex_mode, NULL);
+        return ril_at_udconf(st, 120*60*1000, 1, hex_mode, NULL);
 }
 
 int
 ril_at_udconf1_set (ril_state_t* st,
                     int hex_mode)
 {
-        return ril_at_udconf_set(st, 1, hex_mode, -1);
+        return ril_at_udconf_set(st, 120*60*1000, 1, hex_mode, -1);
 }
 
 int
 ril_at_udconf (ril_state_t* st,
+               unsigned int timeout,
                int op_code,
                ...)
 {
@@ -35,7 +36,7 @@ ril_at_udconf (ril_state_t* st,
 
         ril_cmd_printf(st, "%A=%d", "+UDCONF", op_code);
         ril_cmd_eol   (st);
-        ril_rsp_echo  (st);
+        ril_rsp_echo  (st, timeout);
         ril_rsp_scanf (st, "%s: %*d", "+UDCONF");
 
         for (int* arg; !st->error && (arg = va_arg(args, int*)); )
@@ -53,6 +54,7 @@ ril_at_udconf (ril_state_t* st,
 
 int
 ril_at_udconf_set (ril_state_t* st,
+                   unsigned int timeout,
                    int op_code,
                    ...)
 {
@@ -71,7 +73,7 @@ ril_at_udconf_set (ril_state_t* st,
         }
 
         ril_cmd_eol  (st);
-        ril_rsp_echo (st);
+        ril_rsp_echo (st, timeout);
         ril_rsp_final(st);
 
         va_end(args);

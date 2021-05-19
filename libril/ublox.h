@@ -28,21 +28,27 @@ int ril_at_udconf1_set (ril_state_t* st, int hex_mode);
 
 /// read proprietary features
 /**
+ * @param timeout
+ *      maximum time allowed for the whole response, or `0` to keep
+ *      going with previous value
  * @param op_code
  *      operation code
  * @param ...
  *      0 or more integer parameters terminated by NULL
  */
-int ril_at_udconf (ril_state_t* st, int op_code, ...);
+int ril_at_udconf (ril_state_t* st, unsigned int timeout, int op_code, ...);
 
 /// configure u-blox features
 /**
+ * @param timeout
+ *      maximum time allowed for the whole response, or `0` to keep
+ *      going with previous value
  * @param op_code
  *      operation code
  * @param ...
  *      0 or more integer parameters terminated by -1
  */
-int ril_at_udconf_set (ril_state_t* st, int op_code, ...);
+int ril_at_udconf_set (ril_state_t* st, unsigned int timeout, int op_code, ...);
 
 #endif // RIL_UBLOX_H
 

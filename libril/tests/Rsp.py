@@ -1,4 +1,4 @@
-# AtRsp.py
+# Rsp.py
 
 from ctypes import *
 from Common import *
@@ -9,7 +9,7 @@ dll.ril_rsp_char            .argtypes = [POINTER(ril_state_t), c_char]
 dll.ril_rsp_charn           .argtypes = [POINTER(ril_state_t), c_size_t, POINTER(c_char*BUF_MAX)]
 dll.ril_rsp_charp           .argtypes = [POINTER(ril_state_t), POINTER(c_char)]
 dll.ril_rsp_deinit          .argtypes = [POINTER(ril_state_t)]
-dll.ril_rsp_echo            .argtypes = [POINTER(ril_state_t)]
+dll.ril_rsp_echo            .argtypes = [POINTER(ril_state_t), c_uint]
 dll.ril_rsp_eol             .argtypes = [POINTER(ril_state_t)]
 dll.ril_rsp_final           .argtypes = [POINTER(ril_state_t)]
 dll.ril_rsp_flush           .argtypes = [POINTER(ril_state_t)]
@@ -46,12 +46,16 @@ dll.ril_rsp_strqq           .argtypes = [POINTER(ril_state_t), c_char, c_char, P
 dll.ril_rsp_strqqe          .argtypes = [POINTER(ril_state_t), c_char, c_char, c_char, POINTER(c_char*BUF_MAX)]
 dll.ril_rsp_uint            .argtypes = [POINTER(ril_state_t), POINTER(c_uint)]
 
+RESPONSE_TIME_10ms = 10
+
 class Rsp:
 
     def __init__ (self):
+        self.timeout = 0
         self._response = bytearray() # response buffer
         self._buf = c_char*BUF_MAX
         self._state = ril_state_t()
+        self._timestamp = 0
         dll.ril_rsp_init(byref(self._state), rsp_read, py_object(self), BUF_MAX)
 
     def __del__ (self):
@@ -81,8 +85,8 @@ class Rsp:
 
     #--- Main --------------------------------------------------------------#
 
-    def echo (self):
-        return dll.ril_rsp_echo(self._state)
+    def echo (self, timeout):
+        return dll.ril_rsp_echo(self._state, timeout)
 
     def final (self):
         return dll.ril_rsp_final(self._state)
