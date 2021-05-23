@@ -350,17 +350,6 @@ int ril_rsp_match_char (ril_state_t* st, char c);
  */
 int ril_rsp_match_charp (ril_state_t* st, const char* pattern);
 
-/// match any characters until given `c` is found
-/**
- * @param st
- *      internal state
- * @param c
- *      character to seek
- * @return
- *      number of matching bytes
- */
-int ril_rsp_seek_char (ril_state_t* st, char c);
-
 /// read an expected character from input stream
 /**
  * This function is faster than @ref ril_rsp_str().

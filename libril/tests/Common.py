@@ -24,7 +24,7 @@ def read (self, timeout):
     elif self.timeout <= (time.monotonic_ns() - self._timestamp)//1_000_000:
         return -2
     if not len(self._response):
-        return -1
+        return -2
     return self._response.pop(0)
 
 rsp_read_t = CFUNCTYPE(c_int, py_object, c_uint)
@@ -62,28 +62,28 @@ class Error(enum.IntEnum):
         BAD_PARAMETER        = 1
         CMD_WRITE            = 2
         READ_OVERFLOW        = 3
-        READ_UNDERFLOW       = 4
-        READ_TIMEOUT         = 5
-        RSP_CHAR             = 5
-        RSP_CHARP            = 6
-        RSP_ECHO             = 7
-        RSP_EOL              = 8
-        RSP_FINAL_ABORT      = 9
-        RSP_FINAL_CME        = 10
-        RSP_FINAL_CMS        = 11
-        RSP_FINAL_ERROR      = 12
-        RSP_FINAL_UNKNOWN    = 13
-        RSP_HEX              = 14
-        RSP_INT              = 15
-        RSP_LINE             = 16
-        RSP_LINE_DUMP        = 17
-        RSP_QUERY            = 18
-        RSP_STR              = 19
-        RSP_STRA_NONE        = 20
-        RSP_STRA_OVERFLOW    = 21
-        RSP_STRA_UNDERFLOW   = 22
-        RSP_STRPN            = 23
-        RSP_STRQQE_BEGIN     = 24
-        RSP_STRQQE_END       = 25
-        RSP_STRQQE_NO_QUOTES = 26
-        RSP_UINT             = 27
+        READ_TIMEOUT         = 4
+        READ_GENERAL         = 5
+        RSP_CHAR             = 6
+        RSP_CHARP            = 7
+        RSP_ECHO             = 8
+        RSP_EOL              = 9
+        RSP_FINAL_ABORT      = 10
+        RSP_FINAL_CME        = 11
+        RSP_FINAL_CMS        = 12
+        RSP_FINAL_ERROR      = 13
+        RSP_FINAL_UNKNOWN    = 14
+        RSP_HEX              = 15
+        RSP_INT              = 16
+        RSP_LINE             = 17
+        RSP_LINE_DUMP        = 18
+        RSP_QUERY            = 19
+        RSP_STR              = 20
+        RSP_STRA_NONE        = 21
+        RSP_STRA_OVERFLOW    = 22
+        RSP_STRA_UNDERFLOW   = 23
+        RSP_STRPN            = 24
+        RSP_STRQQE_BEGIN     = 25
+        RSP_STRQQE_END       = 26
+        RSP_STRQQE_NO_QUOTES = 27
+        RSP_UINT             = 28

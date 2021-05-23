@@ -7,7 +7,6 @@
 
 /// response time values (in milliseconds)
 //@{
-#define RIL_RT_1ms   (        1)
 #define RIL_RT_10ms  (       10)
 #define RIL_RT_10s   (  10*1000)
 #define RIL_RT_180s  (3*60*1000)
@@ -82,8 +81,8 @@ enum RIL_ERR
 
         // errors related to response reception
         RIL_ERR_RSP_READ_OVERFLOW,
-        RIL_ERR_RSP_READ_UNDERFLOW,
         RIL_ERR_RSP_READ_TIMEOUT,
+        RIL_ERR_RSP_READ_GENERAL,
         RIL_ERR_RSP_CHAR,
         RIL_ERR_RSP_CHARP,
         RIL_ERR_RSP_ECHO,

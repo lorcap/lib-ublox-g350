@@ -35,7 +35,6 @@ dll.ril_rsp_res_abort       .argtypes = [POINTER(ril_state_t)]
 dll.ril_rsp_res_ok          .argtypes = [POINTER(ril_state_t)]
 dll.ril_rsp_res_ok_str      .argtypes = [POINTER(ril_state_t), POINTER(c_char*BUF_MAX)]
 dll.ril_rsp_res_str         .argtypes = [POINTER(ril_state_t), c_bool, POINTER(c_char*BUF_MAX)]
-dll.ril_rsp_seek_char       .argtypes = [POINTER(ril_state_t), c_char]
 dll.ril_rsp_str             .argtypes = [POINTER(ril_state_t), POINTER(c_char)]
 dll.ril_rsp_stra            .argtypes = [POINTER(ril_state_t), POINTER(c_char), c_void_p, c_size_t, c_size_t, c_size_t]
 dll.ril_rsp_strp            .argtypes = [POINTER(ril_state_t), POINTER(c_char), POINTER(c_char*BUF_MAX)]
@@ -160,9 +159,6 @@ class Rsp:
 
     def match_charp (self, pattern):
         return dll.ril_rsp_match_charp(self._state, pattern)
-
-    def seek_char (self, c):
-        return dll.ril_rsp_seek_char(self._state, c_char(ord(c)))
 
     def char (self, c):
         return dll.ril_rsp_char(self._state, c_char(ord(c)))
