@@ -742,15 +742,34 @@ ril_rsp_line_ok (ril_state_t* st)
 int
 ril_rsp_line_dump (ril_state_t* st)
 {
-        for (size_t i = -1; !st->error && i != st->index; )
-        {
-                i = st->index;
-                ril_rsp_match_charp(st, "^\r");
-                if (ril_rsp_match_eol(st))
-                        return ril_rsp_res_ok(st);
-        }
+        if (st->error)
+                return 0;
 
-        return ril_rsp_res_abort(st, -RIL_ERR_RSP_LINE_DUMP);
+        size_t count = 0;
+
+        while (true)
+        {
+                switch (st->error)
+                {
+                case -RIL_ERR_NONE:
+                        if (_get(st) == '\r')
+                        {
+                                --st->index;
+                                if (ril_rsp_match_eol(st))
+                                        return count + ril_rsp_res_ok(st);
+                                ++st->index;
+                        }
+                        break;
+
+                case -RIL_ERR_RSP_READ_OVERFLOW:
+                        count += st->count;
+                        _clear(st);
+                        break;
+
+                default:
+                        return ril_rsp_res_abort(st, st->error);
+                }
+        }
 }
 
 

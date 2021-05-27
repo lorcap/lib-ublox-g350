@@ -77,6 +77,9 @@ void ril_rsp_deinit (ril_state_t* st);
  * - an empty line
  * - a line starting with string 'AT'.
  *
+ * In the latter case, no RIL_ERR_RSP_READ_OVERFLOW is generated
+ * (see @ref ril_rsp_line_dump()).
+ *
  * @param st
  *      internal state
  * @param timeout
@@ -640,6 +643,10 @@ int ril_rsp_line_ok    (ril_state_t* st);
  *      internal state
  * @return
  *      number of read bytes
+ *
+ * @note
+ * Line length being dumped may exceed buffer size:
+ * no `RIL_ERR_RSP_READ_OVERFLOW` is generated.
  */
 int ril_rsp_line_dump (ril_state_t* st);
 

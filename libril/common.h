@@ -95,7 +95,6 @@ enum RIL_ERR
         RIL_ERR_RSP_HEX,
         RIL_ERR_RSP_INT,
         RIL_ERR_RSP_LINE,
-        RIL_ERR_RSP_LINE_DUMP,
         RIL_ERR_RSP_QUERY,
         RIL_ERR_RSP_STR,
         RIL_ERR_RSP_STRA_NONE,

@@ -477,7 +477,10 @@ class TestRsp (unittest.TestCase):
         self.assertEqual(rsp.tail(), t)
 
     def test_rsp57_line_dump (self):
-        l = b'foo bar\r\n'
+        l = b'x'*(Rsp.BUF_MAX//2) \
+          + b'\r'                 \
+          + b'x'*(Rsp.BUF_MAX//2) \
+          + b'\r\n'
         t = b'tail'
         rsp.response(l+t)
         count = rsp.line_dump()
