@@ -57,6 +57,14 @@ class ril_state_t (Structure):
                     f'buf_max:{self.buf_max}, buf:{self.buf}'\
                 f') at {id(self):#x} -> {id(self.count):#x})'
 
+class MEM(enum.IntEnum):
+    NONE                = 0
+    BM                  = 1
+    ME                  = 2
+    MT                  = 3
+    SM                  = 4
+    SR                  = 5
+
 class ERROR(enum.IntEnum):
     NONE                = 0
     BAD_PARAMETER       = 1

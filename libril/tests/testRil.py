@@ -1,5 +1,5 @@
 import unittest
-from Common import ERROR
+from Common import MEM, ERROR
 import Ril
 
 ril = Ril.Ril()
@@ -152,6 +152,13 @@ class TestRil (unittest.TestCase):
         err = ril.at_csca_set(csa)
         self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), f'AT+CSCA="{csa}"\r\n')
+
+    def test_ril_urc_cmti (self):
+        ril.line('+CMTI: "SM",5')
+        err, mem, index = ril.urc_cmti()
+        self.assertEqual(err, -ERROR.NONE)
+        self.assertEqual(mem, MEM.SM)
+        self.assertEqual(index, 5)
 
 
     #--- V24 control and V25ter --------------------------------------------#

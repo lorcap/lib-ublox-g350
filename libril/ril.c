@@ -39,6 +39,34 @@ _at_set (ril_state_t* st,
         return st->error;
 }
 
+static enum RIL_MEM
+_str2mem (const char* str)
+{
+        if (str[0] == 'B')
+        {
+                if (str[1] == 'M')
+                        return RIL_MEM_BM;
+        } else
+        if (str[0] == 'M')
+        {
+                if (str[1] == 'E')
+                        return RIL_MEM_ME;
+                else
+                if (str[1] == 'T')
+                        return RIL_MEM_MT;
+        } else
+        if (str[0] == 'S')
+        {
+                if (str[1] == 'M')
+                        return RIL_MEM_SM;
+                else
+                if (str[1] == 'R')
+                        return RIL_MEM_SR;
+        }
+
+        return RIL_MEM_NONE;
+}
+
 
 /* *** Init/deinit ******************************************************* */
 
@@ -365,6 +393,18 @@ ril_at_csca_set (ril_state_t* st,
         ril_cmd_printf(st, "%A=%\"s%$", "+CSCA", csa);
         ril_rsp_echo  (st, RIL_RT_10s);
         ril_rsp_final (st);
+        return st->error;
+}
+
+int
+ril_urc_cmti (ril_state_t* st,
+              enum RIL_MEM* mem,
+              int* index)
+{
+        char str[3];
+
+        ril_rsp_scanf(st, "%s: %\"s,%d%$", "+CMTI", str, index);
+        *mem = _str2mem(str);
         return st->error;
 }
 

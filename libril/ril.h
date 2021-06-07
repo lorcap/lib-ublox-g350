@@ -186,6 +186,17 @@ int ril_at_cged_set (ril_state_t* st, enum RIL_CGED_MODE mode);
  */
 ///@{
 
+/// Memory storage types
+enum RIL_MEM
+{
+        RIL_MEM_NONE,   ///< none/unknown
+        RIL_MEM_BM,     ///< Broadcast Message storage
+        RIL_MEM_ME,     ///< ME (Mobile Equipment) message storage
+        RIL_MEM_MT,     ///< (U)SIM message storage
+        RIL_MEM_SM,     ///< "ME"+"SM", "ME" preferred
+        RIL_MEM_SR,     ///< Status Report storage
+};
+
 /// Preferred message format +CMGF (read)
 int ril_at_cmgf_read (ril_state_t* st, int* mode);
 
@@ -209,6 +220,9 @@ int ril_at_csca_read (ril_state_t* st, char* sca, int* tosca);
 
 /// Service center address +CSCA (set)
 int ril_at_csca_set (ril_state_t* st, const char* sca);
+
+/// message indication
+int ril_urc_cmti (ril_state_t* st, enum RIL_MEM* mem, int* index);
 
 ///@}
 

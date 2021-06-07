@@ -154,6 +154,12 @@ class Ril:
     def at_csca_set (self, csa):
         return dll.ril_at_csca_set(self._state, csa.encode('ascii'))
 
+    def urc_cmti (self):
+        mem = c_int()
+        index = c_int()
+        err = dll.ril_urc_cmti(self._state, byref(mem), byref(index))
+        return err, mem.value, index.value
+
 
     #--- V24 control and V25ter --------------------------------------------#
 
