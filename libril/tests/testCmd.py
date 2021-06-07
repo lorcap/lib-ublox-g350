@@ -1,6 +1,6 @@
 import unittest
 from ctypes import c_int, c_char, sizeof, Structure
-from Common import Error
+from Common import ERROR
 import Cmd
 
 cmd = Cmd.Cmd()
@@ -13,27 +13,27 @@ class TestCmd (unittest.TestCase):
     def test_cmd02_char (self):
         c = b'c'
         count = cmd.char(c)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(cmd.command(), c)
 
     def test_cmd03_charn (self):
         b = b'string'
         count = cmd.charn(b)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(cmd.command(), b)
 
     def test_cmd04_charn_none (self):
         b = b''
         count = cmd.charn(b)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(cmd.command(), b)
 
     def test_cmd05_eol (self):
         count = cmd.eol()
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, 2)
         self.assertEqual(cmd.command(), b'\r\n')
 
@@ -41,7 +41,7 @@ class TestCmd (unittest.TestCase):
         i = 0x012345678
         v = f'{i:d}'.encode('ascii')
         count = cmd.int(i)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(v))
         self.assertEqual(cmd.command(), v)
 
@@ -49,7 +49,7 @@ class TestCmd (unittest.TestCase):
         i = 0x012345678
         v = f'{i:x}'.encode('ascii')
         count = cmd.hex(i)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(v))
         self.assertEqual(cmd.command(), v)
 
@@ -58,7 +58,7 @@ class TestCmd (unittest.TestCase):
         w = 8
         v = f'{i:0{w}x}'.encode('ascii')
         count = cmd.hexw(i, w)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(v))
         self.assertEqual(cmd.command(), v)
 
@@ -66,7 +66,7 @@ class TestCmd (unittest.TestCase):
         s = b'string'
         t = b'tail'
         count = cmd.str(s + b'\x00' + t)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(cmd.command(), s)
 
@@ -76,7 +76,7 @@ class TestCmd (unittest.TestCase):
         for i in range(2):
             with self.subTest(i=i):
                 count = cmd.strn(s + b'\x00' + t, len(s) + i)
-                self.assertEqual(cmd.error, -Error.NONE)
+                self.assertEqual(cmd.error, -ERROR.NONE)
                 self.assertEqual(count, len(s))
                 self.assertEqual(cmd.command(), s)
 
@@ -85,7 +85,7 @@ class TestCmd (unittest.TestCase):
         q = b'"'
         qsq = q + s + q
         count = cmd.strq(s, q)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(qsq))
         self.assertEqual(cmd.command(), qsq)
 
@@ -95,7 +95,7 @@ class TestCmd (unittest.TestCase):
         qe = b'>'
         qsq = qb + s + qe
         count = cmd.strqq(s, qb, qe)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(qsq))
         self.assertEqual(cmd.command(), qsq)
 
@@ -107,7 +107,7 @@ class TestCmd (unittest.TestCase):
                    .replace(q, e+q)\
             + q
         count = cmd.strqe(s, q, e)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(qsq))
         self.assertEqual(cmd.command(), qsq)
 
@@ -121,14 +121,14 @@ class TestCmd (unittest.TestCase):
                     .replace(qe, e+qe)\
             + qe
         count = cmd.strqqe(s, qb, qe, e)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(qsq))
         self.assertEqual(cmd.command(), qsq)
 
     def test_cmd15_at (self):
         s = b'AT'
         count = cmd.at()
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(cmd.command(), s)
 
@@ -136,7 +136,7 @@ class TestCmd (unittest.TestCase):
         c = b'CMD'
         s = b'AT' + c
         count = cmd.atc(c)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(cmd.command(), s)
 
@@ -145,7 +145,7 @@ class TestCmd (unittest.TestCase):
         o = b'?'
         s = b'AT' + c + o
         count = cmd.atco(c, o)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(cmd.command(), s)
 
@@ -153,7 +153,7 @@ class TestCmd (unittest.TestCase):
         c = b'CMD'
         s = b'AT' + c + b'?\r\n'
         count = cmd.query(c)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(cmd.command(), s)
 
@@ -161,25 +161,25 @@ class TestCmd (unittest.TestCase):
         c = b'CMD'
         s = b'AT' + c + b'='
         count = cmd.set(c)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(cmd.command(), s)
 
     def test_cmd20_printf_percentage (self):
         count = cmd.printf(b'%%')
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, 1)
         self.assertEqual(cmd.command(), b'%')
 
     def test_cmd21_printf_eol (self):
         count = cmd.printf(b'%$')
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, 2)
         self.assertEqual(cmd.command(), b'\r\n')
 
     def test_cmd22_printf_char (self):
         count = cmd.printf(b'%c', b'c')
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, 1)
         self.assertEqual(cmd.command(), b'c')
 
@@ -187,7 +187,7 @@ class TestCmd (unittest.TestCase):
         c = b'abc'
         t = b'tail'
         count = cmd.printf(f'%{len(c)}c'.encode('ascii'), c+t, len(c))
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(cmd.command(), c)
 
@@ -195,7 +195,7 @@ class TestCmd (unittest.TestCase):
         i = 24680
         b = f'{i}'.encode('ascii')
         count = cmd.printf(b'%d', i)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(cmd.command(), b)
 
@@ -203,7 +203,7 @@ class TestCmd (unittest.TestCase):
         i = 24680
         b = f'{i:+}'.encode('ascii')
         count = cmd.printf(b'%+d', i)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(cmd.command(), b)
 
@@ -212,7 +212,7 @@ class TestCmd (unittest.TestCase):
         w = 8
         b = f'{i:0{w}}'.encode('ascii')
         count = cmd.printf(f'%{w}d'.encode('ascii'), i)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(cmd.command(), b)
 
@@ -221,14 +221,14 @@ class TestCmd (unittest.TestCase):
         w = 8
         b = f'{i:+0{w}}'.encode('ascii')
         count = cmd.printf(f'%+{w}d'.encode('ascii'), i)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(cmd.command(), b)
 
     def test_cmd28_printf_str (self):
         s = b'string'
         count = cmd.printf(b'%s', s+b'\00')
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(cmd.command(), s)
 
@@ -236,7 +236,7 @@ class TestCmd (unittest.TestCase):
         s = b'string'
         n = len(s) + 1
         count = cmd.printf(b'%*s', n, s+b'\00')
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(cmd.command(), s)
 
@@ -245,7 +245,7 @@ class TestCmd (unittest.TestCase):
         q = b'"'
         qsq = q + s + q
         count = cmd.printf(b'%"s', s)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(qsq))
         self.assertEqual(cmd.command(), qsq)
 
@@ -254,7 +254,7 @@ class TestCmd (unittest.TestCase):
         q = b"'"
         qsq = q + s + q
         count = cmd.printf(b"%'s", q, s)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(qsq))
         self.assertEqual(cmd.command(), qsq)
 
@@ -266,7 +266,7 @@ class TestCmd (unittest.TestCase):
                    .replace(q, e+q)\
                 + q
         count = cmd.printf(b"%'|s", q, e, s)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(qsq))
         self.assertEqual(cmd.command(), qsq)
 
@@ -278,7 +278,7 @@ class TestCmd (unittest.TestCase):
                     .replace(qe, qe)\
             + qe
         count = cmd.printf(b"%><s", qe, qb, s)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(qsq))
         self.assertEqual(cmd.command(), qsq)
 
@@ -292,7 +292,7 @@ class TestCmd (unittest.TestCase):
                     .replace(qe, e+qe)\
             + qe
         count = cmd.printf(b"%><|s", qe, qb, e, s)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(qsq))
         self.assertEqual(cmd.command(), qsq)
 
@@ -300,7 +300,7 @@ class TestCmd (unittest.TestCase):
         i = 24680
         b = f'{i}'.encode('ascii')
         count = cmd.printf(f'%u'.encode('ascii'), i)
-        self.assertEqual(cmd.error, -Error.NONE)
+        self.assertEqual(cmd.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(cmd.command(), b)
 

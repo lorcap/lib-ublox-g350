@@ -1,5 +1,5 @@
 import unittest
-from Common import Error
+from Common import ERROR
 import Ril
 
 ril = Ril.Ril()
@@ -9,14 +9,14 @@ class TestRil (unittest.TestCase):
     def _at_read (self, cmd, ril_at, state):
         ril.rsp_ok(f'{cmd}: {state}')
         err, state_ = ril_at()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), f'AT{cmd}?\r\n')
         self.assertEqual(state, state_)
 
     def _at_set (self, cmd, ril_at_set, state):
         ril.rsp_ok()
         err = ril_at_set(state)
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), f'AT{cmd}={state}\r\n')
 
 
@@ -26,7 +26,7 @@ class TestRil (unittest.TestCase):
         version_ = '11.40'
         ril.rsp_ok(version_)
         err, version = ril.at_cgmr_read()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), 'AT+CGMR\r\n')
         self.assertEqual(version_, version)
 
@@ -34,7 +34,7 @@ class TestRil (unittest.TestCase):
         ccid_ = '8939107800023416395'
         ril.rsp_ok(f'+CCID: {ccid_}')
         err, ccid = ril.at_ccid_read()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), 'AT+CCID\r\n')
         self.assertEqual(ccid_, ccid)
 
@@ -44,14 +44,14 @@ class TestRil (unittest.TestCase):
     def test_ril_at_cscs_read (self):
         ril.rsp_ok('+CSCS: "IRA"')
         err, chset = ril.at_cscs_read()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), 'AT+CSCS?\r\n')
         self.assertEqual(chset, 4)
 
     def test_ril_at_cscs_set (self):
         ril.rsp_ok()
         err = ril.at_cscs_set(4)
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), 'AT+CSCS="IRA"\r\n')
 
 
@@ -60,7 +60,7 @@ class TestRil (unittest.TestCase):
     def test_ril_at_cmer_read (self):
         ril.rsp_ok('+CMER: 1,0,0,0,1')
         err, mode, ind, bfr = ril.at_cmer_read()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), 'AT+CMER?\r\n')
         self.assertEqual(mode, 1)
         self.assertEqual(ind , 0)
@@ -69,13 +69,13 @@ class TestRil (unittest.TestCase):
     def test_ril_at_cmer_set (self):
         ril.rsp_ok()
         err = ril.at_cmer_set(1, 2, 1)
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), f'AT+CMER=1,0,0,2,1\r\n')
 
     def test_ril_at_cclk_read (self):
         ril.rsp_ok(f'+CCLK: "14/07/01,15:00:00+01"')
         err, year, month, day, hours, minutes, seconds, timezone = ril.at_cclk_read()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), 'AT+CCLK?\r\n')
         self.assertEqual(year    , 2014)
         self.assertEqual(month   ,    7)
@@ -88,7 +88,7 @@ class TestRil (unittest.TestCase):
     def test_ril_at_cclk_set (self):
         ril.rsp_ok()
         err = ril.at_cclk_set(2014, 7, 1, 15, 0, 0, 15)
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), f'AT+CCLK="14/07/01,15:00:00+01"\r\n')
 
     def test_ril_at_cmee_read (self):
@@ -124,7 +124,7 @@ class TestRil (unittest.TestCase):
     def test_ril_at_cnmi_read (self):
         ril.rsp_ok('+CNMI: 0,0,0,0,0')
         err, mode, mt, bm, ds, bfr = ril.at_cnmi_read()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), f'AT+CNMI?\r\n')
         self.assertEqual(mode, 0)
         self.assertEqual(mt, 0)
@@ -135,13 +135,13 @@ class TestRil (unittest.TestCase):
     def test_ril_at_cnmi_set (self):
         ril.rsp_ok()
         err = ril.at_cnmi_set(1, 1, 0, 0, 0)
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), f'AT+CNMI=1,1,0,0,0\r\n')
 
     def test_ril_at_csca_read (self):
         ril.rsp_ok('+CSCA: "",129')
         err, csa, tocsa = ril.at_csca_read()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), f'AT+CSCA?\r\n')
         self.assertEqual(csa, '')
         self.assertEqual(tocsa, 129)
@@ -150,7 +150,7 @@ class TestRil (unittest.TestCase):
         csa = '0170111000'
         ril.rsp_ok()
         err = ril.at_csca_set(csa)
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), f'AT+CSCA="{csa}"\r\n')
 
 
@@ -159,7 +159,7 @@ class TestRil (unittest.TestCase):
     def test_ril_ate_set (self):
         ril.rsp_ok()
         err = ril.ate_set(1)
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), 'ATE1\r\n')
 
 
@@ -174,7 +174,7 @@ class TestRil (unittest.TestCase):
     def test_ril_at_cgreg0_read (self):
         ril.rsp_ok(f'+CGREG: 0,4')
         err, n, stat, lac, ci = ril.at_cgreg_read()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), 'AT+CGREG?\r\n')
         self.assertEqual(n   , 0)
         self.assertEqual(stat, 4)
@@ -182,7 +182,7 @@ class TestRil (unittest.TestCase):
     def test_ril_at_cgreg2_read (self):
         ril.rsp_ok(f'+CGREG: 2,1,"61EF","7D58A3"')
         err, n, stat, lac, ci = ril.at_cgreg_read()
-        self.assertEqual(err, -Error.NONE)
+        self.assertEqual(err, -ERROR.NONE)
         self.assertEqual(ril.cmd(), 'AT+CGREG?\r\n')
         self.assertEqual(n   ,        2)
         self.assertEqual(stat,        1)

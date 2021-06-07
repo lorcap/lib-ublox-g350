@@ -1,6 +1,6 @@
 import unittest
 from ctypes import c_char, c_char_p, c_int, c_uint, sizeof, Structure
-from Common import Error
+from Common import ERROR
 import Rsp
 
 class element_t (Structure):
@@ -24,7 +24,7 @@ class TestRsp (unittest.TestCase):
         s = b'garbage'
         rsp.response(s)
         count = rsp.flush()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(len(rsp._response), 0)
 
@@ -32,7 +32,7 @@ class TestRsp (unittest.TestCase):
         c = b'c'
         rsp.response(c)
         count = rsp.match_char(c)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.index, len(c))
 
@@ -40,7 +40,7 @@ class TestRsp (unittest.TestCase):
         c = b'c'
         rsp.response(c)
         count = rsp.match_charp(b'c')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.index, len(c))
 
@@ -48,7 +48,7 @@ class TestRsp (unittest.TestCase):
         b = b'ctail'
         rsp.response(b)
         count = rsp.match_charp(b'C')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, 0)
         self.assertEqual(rsp.index, 0)
 
@@ -57,7 +57,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(c+t)
         count = rsp.match_charp(b'c')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.index, len(c))
 
@@ -66,7 +66,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(c+t)
         count = rsp.match_charp(b'^C')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.index, len(c))
 
@@ -75,7 +75,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(c+t)
         count = rsp.match_charp(b'a-z')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.index, len(c))
 
@@ -83,7 +83,7 @@ class TestRsp (unittest.TestCase):
         b = b'ctail'
         rsp.response(b)
         count = rsp.match_charp(b'A-Z')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, 0)
         self.assertEqual(rsp.index, 0)
 
@@ -92,7 +92,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(c+t)
         count = rsp.match_charp(b'^A-Z')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.index, len(c))
 
@@ -100,7 +100,7 @@ class TestRsp (unittest.TestCase):
         c = b'c'
         rsp.response(c)
         count = rsp.char(c)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.tail(), b'')
 
@@ -108,14 +108,14 @@ class TestRsp (unittest.TestCase):
         rsp.response('')
         rsp.timeout = 1
         count = rsp.char(b'c')
-        self.assertEqual(rsp.error, -Error.RSP_CHAR)
+        self.assertEqual(rsp.error, -ERROR.RSP_CHAR)
         self.assertEqual(count, 0)
 
     def test_rsp13_charp (self):
         c = b'c'
         rsp.response(c)
         count = rsp.charp(b'c')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.tail(), b'')
 
@@ -123,7 +123,7 @@ class TestRsp (unittest.TestCase):
         b = b'ctail'
         rsp.response(b)
         count = rsp.charp(b'C')
-        self.assertEqual(rsp.error, -Error.RSP_CHARP)
+        self.assertEqual(rsp.error, -ERROR.RSP_CHARP)
         self.assertEqual(count, 0)
         self.assertEqual(rsp.tail(), b)
 
@@ -132,7 +132,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(c+t)
         count = rsp.charp(b'c')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.tail(), t)
 
@@ -141,7 +141,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(c+t)
         count = rsp.charp(b'^C')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.tail(), t)
 
@@ -150,7 +150,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(c+t)
         count = rsp.charp(b'a-z')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.tail(), t)
 
@@ -158,7 +158,7 @@ class TestRsp (unittest.TestCase):
         b = b'ctail'
         rsp.response(b)
         count = rsp.charp(b'A-Z')
-        self.assertEqual(rsp.error, -Error.RSP_CHARP)
+        self.assertEqual(rsp.error, -ERROR.RSP_CHARP)
         self.assertEqual(count, 0)
         self.assertEqual(rsp.tail(), b)
 
@@ -167,7 +167,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(c+t)
         count = rsp.charp(b'^A-Z')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.tail(), t)
 
@@ -176,7 +176,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(e+t)
         count = rsp.match_eol()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(e))
         self.assertEqual(rsp.tail(), e+t)
 
@@ -185,7 +185,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(e+t)
         count = rsp.eol()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(e))
         self.assertEqual(rsp.tail(), t)
 
@@ -195,7 +195,7 @@ class TestRsp (unittest.TestCase):
         t = b'\r\n'
         rsp.response(b+t)
         count, val = rsp.uint()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(val, u)
 
@@ -206,7 +206,7 @@ class TestRsp (unittest.TestCase):
         rsp.response(b+t)
         count, val = rsp.uint()
         self.assertEqual(count, len(b))
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(val, u)
         self.assertEqual(rsp.tail(), t)
 
@@ -216,7 +216,7 @@ class TestRsp (unittest.TestCase):
         t = b'\r\n'
         rsp.response(b+t)
         count, val = rsp.int()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(val, i)
 
@@ -226,7 +226,7 @@ class TestRsp (unittest.TestCase):
         t = b'\r\n'
         rsp.response(b+t)
         count, val = rsp.int()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(val, i)
 
@@ -236,7 +236,7 @@ class TestRsp (unittest.TestCase):
         t = b'\r\n'
         rsp.response(b+t)
         count, val = rsp.int()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(val, i)
 
@@ -246,7 +246,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(b+t)
         count, val = rsp.hex()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(val, i)
         self.assertEqual(rsp.tail(), t)
@@ -258,7 +258,7 @@ class TestRsp (unittest.TestCase):
         rsp.int() # move one char from Python's to C's buffer
         rsp._state.error = 0
         count, val = rsp.charn(len(s))
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s)
         self.assertEqual(rsp.tail(), t)
@@ -268,7 +268,7 @@ class TestRsp (unittest.TestCase):
         t = b'\r\n'
         rsp.response(s+t)
         count = rsp.match_strp(b'A-Z')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(rsp.index, len(s))
 
@@ -277,7 +277,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count, val = rsp.strp(b'A-Z')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s)
         self.assertEqual(rsp.tail(), t)
@@ -286,7 +286,7 @@ class TestRsp (unittest.TestCase):
         s = b'STRING'
         rsp.response(s)
         count = rsp.match_str(s)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(rsp.index, len(s))
 
@@ -295,11 +295,11 @@ class TestRsp (unittest.TestCase):
         t = b'\r\n'
         rsp.response(s*2+t)
         count = rsp.match_str(s)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(rsp.index, len(s))
         count = rsp.match_str(s)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(rsp.index, len(s)*2)
 
@@ -309,7 +309,7 @@ class TestRsp (unittest.TestCase):
         t = b'\r\n'
         rsp.response(s+t)
         count = rsp.match_str(S)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, 0)
         self.assertEqual(rsp.index, 0)
 
@@ -318,7 +318,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count = rsp.str(s)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(rsp.tail(), t)
 
@@ -329,7 +329,7 @@ class TestRsp (unittest.TestCase):
         b = s+t
         rsp.response(b)
         count = rsp.str(S)
-        self.assertEqual(rsp.error, -Error.RSP_STR)
+        self.assertEqual(rsp.error, -ERROR.RSP_STR)
         self.assertEqual(count, 0)
         self.assertEqual(rsp.tail(), b)
 
@@ -338,7 +338,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count = rsp.match_strpn(b'^a-z', 10)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
 
     def test_rsp37_strpn_neg (self):
@@ -346,7 +346,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count, val = rsp.strpn(b'^a-z', 10)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s)
         self.assertEqual(rsp.tail(), t)
@@ -357,7 +357,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count, val = rsp.strqqe(b'<', b'>', b'\\')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
@@ -367,7 +367,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count, val = rsp.strqq(b'<', b'>')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
@@ -378,7 +378,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count, val = rsp.strqe(b'"', b'\\')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
@@ -388,7 +388,7 @@ class TestRsp (unittest.TestCase):
         t = b'"tail'
         rsp.response(s+t)
         count, val = rsp.strq(b'"')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
@@ -398,7 +398,7 @@ class TestRsp (unittest.TestCase):
         rsp.response(s)
         count, val = rsp.strq(b'"')
         self.assertEqual(count, 0)
-        self.assertEqual(rsp.error, -Error.RSP_STRQQE_END)
+        self.assertEqual(rsp.error, -ERROR.RSP_STRQQE_END)
 
     def _test_stra (self, array, error):
         for i in range(len(array)):
@@ -410,34 +410,34 @@ class TestRsp (unittest.TestCase):
                 rsp.flush()
 
     def test_rsp43_stra_a_b_c_d (self):
-        self._test_stra((element_t*4)((0, b'A'), (1, b'B'), (2, b'C'), (3, b'D')), -Error.NONE)
+        self._test_stra((element_t*4)((0, b'A'), (1, b'B'), (2, b'C'), (3, b'D')), -ERROR.NONE)
 
     def test_rsp44_stra_aa_ab_ac_ad (self):
-        self._test_stra((element_t*4)((0, b'AA'), (1, b'AB'), (2, b'AC'), (3, b'AD')), -Error.NONE)
+        self._test_stra((element_t*4)((0, b'AA'), (1, b'AB'), (2, b'AC'), (3, b'AD')), -ERROR.NONE)
 
     def test_rsp45_stra_aa_ab_ba_bb (self):
-        self._test_stra((element_t*4)((0, b'AA'), (1, b'AB'), (2, b'BA'), (3, b'BB')), -Error.NONE)
+        self._test_stra((element_t*4)((0, b'AA'), (1, b'AB'), (2, b'BA'), (3, b'BB')), -ERROR.NONE)
 
     def test_rsp46_stra_a(self):
-        self._test_stra((element_t*1)((0, b'A')), -Error.NONE)
+        self._test_stra((element_t*1)((0, b'A')), -ERROR.NONE)
 
     def test_rsp47_stra_a_aa (self):
-        self._test_stra((element_t*2)((0, b'A'), (1, b'AA')), -Error.NONE)
+        self._test_stra((element_t*2)((0, b'A'), (1, b'AA')), -ERROR.NONE)
 
     def test_rsp48_stra_a_aa_aaa(self):
-        self._test_stra((element_t*3)((0, b'A'), (1, b'AA'), (2, b'AAA')), -Error.NONE)
+        self._test_stra((element_t*3)((0, b'A'), (1, b'AA'), (2, b'AAA')), -ERROR.NONE)
 
     def test_rsp49_stra_a_aa_aaa_aaaa (self):
-        self._test_stra((element_t*4)((0, b'A'), (1, b'AA'), (2, b'AAA'), (3, b'AAAA')), -Error.NONE)
+        self._test_stra((element_t*4)((0, b'A'), (1, b'AA'), (2, b'AAA'), (3, b'AAAA')), -ERROR.NONE)
 
     def test_rsp50_stra_aaaa_bbb_cc_d (self):
-        self._test_stra((element_t*4)((0, b'AAAA'), (1, b'BBB'), (2, b'CC'), (3, b'D')), -Error.NONE)
+        self._test_stra((element_t*4)((0, b'AAAA'), (1, b'BBB'), (2, b'CC'), (3, b'D')), -ERROR.NONE)
 
     def test_rsp51_stra_a_aa_b_bb (self):
-        self._test_stra((element_t*4)((0, b'A'), (1, b'AA'), (2, b'B'), (3, b'BB')), -Error.NONE)
+        self._test_stra((element_t*4)((0, b'A'), (1, b'AA'), (2, b'B'), (3, b'BB')), -ERROR.NONE)
 
     def test_rsp52_stra_not (self):
-        self._test_stra((element_t*2)((0, b'a'), (1, b'aa')), -Error.RSP_STRA_NONE)
+        self._test_stra((element_t*2)((0, b'a'), (1, b'aa')), -ERROR.RSP_STRA_NONE)
 
     def test_rsp53_line (self):
         s = b'this is a line'
@@ -445,7 +445,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.line(s)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
 
@@ -454,7 +454,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.line_abort()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
 
@@ -463,7 +463,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.line_error()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
 
@@ -472,7 +472,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.line_ok()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
 
@@ -484,7 +484,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.line_dump()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
 
@@ -492,21 +492,21 @@ class TestRsp (unittest.TestCase):
         l = b'ATCMD\r\n'
         rsp.response(l)
         count = rsp.echo(Rsp.RESPONSE_TIME_10ms)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(l))
 
     def test_rsp59_echo_empty (self):
         l = b'\r\n'
         rsp.response(l)
         count = rsp.echo(Rsp.RESPONSE_TIME_10ms)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(l))
 
     def test_rsp60_echo_not (self):
         l = b'foo\r\n'
         rsp.response(l)
         count = rsp.echo(Rsp.RESPONSE_TIME_10ms)
-        self.assertEqual(rsp.error, -Error.RSP_ECHO)
+        self.assertEqual(rsp.error, -ERROR.RSP_ECHO)
         self.assertEqual(count, 0)
 
     def test_rsp61_query (self):
@@ -515,7 +515,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(b+t)
         count, val = rsp.query(c)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(val, 1)
         self.assertEqual(rsp.tail(), t)
@@ -524,7 +524,7 @@ class TestRsp (unittest.TestCase):
         c = b'%'
         rsp.response(c)
         b = rsp.scanf(b'%%', c)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertTrue(b)
         self.assertEqual(rsp.tail(), b'')
 
@@ -533,7 +533,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(e+t)
         count = rsp.scanf(b'%$')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(e))
         self.assertEqual(rsp.tail(), t)
 
@@ -541,7 +541,7 @@ class TestRsp (unittest.TestCase):
         c = b'c'
         rsp.response(c)
         count = rsp.scanf(b'%c', c)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.tail(), b'')
 
@@ -550,7 +550,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(c+t)
         count = rsp.scanf(b'%/c', b'a-z')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(c))
         self.assertEqual(rsp.tail(), t)
 
@@ -561,7 +561,7 @@ class TestRsp (unittest.TestCase):
         rsp.int() # move one char from Python's to C's buffer
         rsp._state.error = 0
         count, val = rsp.scanf(b'%#c', len(s), c_char_p)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s)
         self.assertEqual(rsp.tail(), t)
@@ -573,7 +573,7 @@ class TestRsp (unittest.TestCase):
         rsp.int() # move one char from Python's to C's buffer
         rsp._state.error = 0
         count, val = rsp.scanf(f'%{len(s)}c'.encode('ascii'), c_char_p)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s)
         self.assertEqual(rsp.tail(), t)
@@ -584,7 +584,7 @@ class TestRsp (unittest.TestCase):
         t = b'\r\n'
         rsp.response(b+t)
         count, val = rsp.scanf(b'%u', c_int)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(val, u)
 
@@ -594,7 +594,7 @@ class TestRsp (unittest.TestCase):
         t = b'\r\n'
         rsp.response(b+t)
         count, val = rsp.scanf(b'%d', c_int)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(val, i)
 
@@ -604,7 +604,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(b+t)
         count, val = rsp.scanf(b'%x', c_uint)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(b))
         self.assertEqual(val, x)
         self.assertEqual(rsp.tail(), t)
@@ -614,7 +614,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count = rsp.scanf(b'%s', s)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(rsp.tail(), t)
 
@@ -623,7 +623,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count, val = rsp.scanf(b'%/#s', b'^a-z', 10, c_char_p)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s)
         self.assertEqual(rsp.tail(), t)
@@ -634,7 +634,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count, val = rsp.scanf(b'%<>|s', b'<', b'>', b'\\', c_char_p)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
@@ -644,7 +644,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count, val = rsp.scanf(b'%<>s', b'<', b'>', c_char_p)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
@@ -655,7 +655,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(s+t)
         count, val = rsp.scanf(b'%\'|s', b'"', b'\\', c_char_p)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
@@ -665,7 +665,7 @@ class TestRsp (unittest.TestCase):
         t = b'"tail'
         rsp.response(s+t)
         count, val = rsp.scanf(b'%\'s', b'"', c_char_p)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
@@ -675,7 +675,7 @@ class TestRsp (unittest.TestCase):
         t = b'"tail'
         rsp.response(s+t)
         count, val = rsp.scanf(b'%"s', c_char_p)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(s))
         self.assertEqual(val, s[1:-1])
         self.assertEqual(rsp.tail(), t)
@@ -686,7 +686,7 @@ class TestRsp (unittest.TestCase):
         r = f'AT: {i},{s}\r\n'.encode('ascii')
         rsp.response(r)
         count, vi, vs = rsp.scanf(b'AT: %d,%/s%$', c_int, b'^,\r', c_char_p)
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(r))
         self.assertEqual(vi, i)
         self.assertEqual(vs, s.encode('ascii'))
@@ -697,7 +697,7 @@ class TestRsp (unittest.TestCase):
         r = f'AT: {i},{s}\r\n'.encode('ascii')
         rsp.response(r)
         count = rsp.scanf(b'AT: %*d,%*/s%$', b'^,\r')
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(r))
 
     def test_rsp80_final_ok (self):
@@ -705,7 +705,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.final()
-        self.assertEqual(rsp.error, -Error.NONE)
+        self.assertEqual(rsp.error, -ERROR.NONE)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
 
@@ -714,7 +714,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.final()
-        self.assertEqual(rsp.error, -Error.RSP_FINAL_ERROR)
+        self.assertEqual(rsp.error, -ERROR.RSP_FINAL_ERROR)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
 
@@ -723,7 +723,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.final()
-        self.assertEqual(rsp.error, -Error.RSP_FINAL_ABORT)
+        self.assertEqual(rsp.error, -ERROR.RSP_FINAL_ABORT)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
 
@@ -733,7 +733,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.final()
-        self.assertEqual(rsp.error, -Error.RSP_FINAL_CME)
+        self.assertEqual(rsp.error, -ERROR.RSP_FINAL_CME)
         self.assertEqual(rsp.cm_err, err)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
@@ -744,7 +744,7 @@ class TestRsp (unittest.TestCase):
         t = b'tail'
         rsp.response(l+t)
         count = rsp.final()
-        self.assertEqual(rsp.error, -Error.RSP_FINAL_CMS)
+        self.assertEqual(rsp.error, -ERROR.RSP_FINAL_CMS)
         self.assertEqual(rsp.cm_err, err)
         self.assertEqual(count, len(l))
         self.assertEqual(rsp.tail(), t)
@@ -754,7 +754,7 @@ class TestRsp (unittest.TestCase):
         l = b'unknown\r\ntail'
         rsp.response(l)
         count = rsp.final()
-        self.assertEqual(rsp.error, -Error.RSP_FINAL_UNKNOWN)
+        self.assertEqual(rsp.error, -ERROR.RSP_FINAL_UNKNOWN)
         self.assertEqual(count, 0)
         self.assertEqual(rsp.tail(), l)
 

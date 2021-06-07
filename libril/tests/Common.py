@@ -57,32 +57,32 @@ class ril_state_t (Structure):
                     f'buf_max:{self.buf_max}, buf:{self.buf}'\
                 f') at {id(self):#x} -> {id(self.count):#x})'
 
-class Error(enum.IntEnum):
-        NONE                 = 0
-        BAD_PARAMETER        = 1
-        CMD_WRITE            = 2
-        READ_OVERFLOW        = 3
-        READ_TIMEOUT         = 4
-        READ_GENERAL         = 5
-        RSP_CHAR             = 6
-        RSP_CHARP            = 7
-        RSP_ECHO             = 8
-        RSP_EOL              = 9
-        RSP_FINAL_ABORT      = 10
-        RSP_FINAL_CME        = 11
-        RSP_FINAL_CMS        = 12
-        RSP_FINAL_ERROR      = 13
-        RSP_FINAL_UNKNOWN    = 14
-        RSP_HEX              = 15
-        RSP_INT              = 16
-        RSP_LINE             = 17
-        RSP_QUERY            = 18
-        RSP_STR              = 19
-        RSP_STRA_NONE        = 20
-        RSP_STRA_OVERFLOW    = 21
-        RSP_STRA_UNDERFLOW   = 22
-        RSP_STRPN            = 23
-        RSP_STRQQE_BEGIN     = 24
-        RSP_STRQQE_END       = 25
-        RSP_STRQQE_NO_QUOTES = 26
-        RSP_UINT             = 27
+class ERROR(enum.IntEnum):
+    NONE                = 0
+    BAD_PARAMETER       = 1
+    CMD_WRITE           = 2
+    READ_OVERFLOW       = 3
+    READ_TIMEOUT        = 4
+    READ_GENERAL        = 5
+    RSP_CHAR            = 6
+    RSP_CHARP           = 7
+    RSP_ECHO            = 8
+    RSP_EOL             = 9
+    RSP_FINAL_ABORT     = 10
+    RSP_FINAL_CME       = 11
+    RSP_FINAL_CMS       = 12
+    RSP_FINAL_ERROR     = 13
+    RSP_FINAL_UNKNOWN   = 14
+    RSP_HEX             = 15
+    RSP_INT             = 16
+    RSP_LINE            = 17
+    RSP_QUERY           = 18
+    RSP_STR             = 19
+    RSP_STRA_NONE       = 20
+    RSP_STRA_OVERFLOW   = 21
+    RSP_STRA_UNDERFLOW  = 22
+    RSP_STRPN           = 23
+    RSP_STRQQE_BEGIN    = 24
+    RSP_STRQQE_END      = 25
+    RSP_STRQQE_NO_QUOTES= 26
+    RSP_UINT            = 27
